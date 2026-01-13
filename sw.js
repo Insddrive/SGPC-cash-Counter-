@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sgpc-cash-v2';
+const CACHE_NAME = 'sgpc-cash-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,12 +7,11 @@ const urlsToCache = [
   'https://unpkg.com/react@18/umd/react.development.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
   'https://unpkg.com/@babel/standalone/babel.min.js',
-  'icon-192.png',
-  'icon-512.png'
+  'icon-192.png'
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Forces the new service worker to take over immediately
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
