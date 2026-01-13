@@ -1,6 +1,6 @@
 {
-  "name": "SGPC Cash Manager",
-  "short_name": "SGPC Cash",
+  "name": "Kzana Counter",
+  "short_name": "Kzana",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FFF8E1",
