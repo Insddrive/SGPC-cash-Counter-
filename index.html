@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kzana Counter</title>
     
-    <!-- PWA Setup -->
+    <!-- PWA Setup for Android & iOS -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF9933">
+    
+    <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kzana Counter">
     <link rel="apple-touch-icon" href="icon-192.png">
     
     <!-- Libraries -->
@@ -27,6 +30,7 @@
             background-color: #FFF8E1;
             -webkit-tap-highlight-color: transparent;
             display: flex; flex-direction: column; min-height: 100vh;
+            overscroll-behavior-y: none; /* Disables pull-to-refresh on mobile */
         }
         .input-box {
             background: white; border: 1px solid #FFCC80;
@@ -40,6 +44,10 @@
         }
         .footer-credit { font-size: 10px; color: #666; text-align: center; padding: 8px; background: #fff; border-top: 1px solid #eee; margin-top: auto; }
         
+        /* Install Prompt Animation */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .install-prompt { animation: slideUp 0.5s ease-out; }
+
         @media print {
             body { background: white; -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
@@ -107,6 +115,72 @@
             return `${weekday}, ${day} ${month} (${monthNum}) ${year}`;
         };
 
+        // --- Install Prompt Component ---
+        const InstallPrompt = () => {
+            const [deferredPrompt, setDeferredPrompt] = useState(null);
+            const [show, setShow] = useState(false);
+            const [isIOS, setIsIOS] = useState(false);
+
+            useEffect(() => {
+                // Check if iOS
+                const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+                const isInStandalone = window.navigator.standalone || (window.matchMedia('(display-mode: standalone)').matches);
+                
+                if (ios && !isInStandalone) {
+                    setIsIOS(true);
+                    // Show iOS instruction after 2 seconds
+                    setTimeout(() => setShow(true), 2000);
+                }
+
+                // Android / Desktop handling
+                const handler = (e) => {
+                    e.preventDefault();
+                    setDeferredPrompt(e);
+                    setShow(true);
+                };
+                window.addEventListener('beforeinstallprompt', handler);
+                return () => window.removeEventListener('beforeinstallprompt', handler);
+            }, []);
+
+            const handleInstall = async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    setShow(false);
+                }
+                setDeferredPrompt(null);
+            };
+
+            if (!show) return null;
+
+            return (
+                <div className="fixed bottom-4 left-4 right-4 bg-white rounded-xl shadow-2xl p-4 z-50 border border-gray-200 install-prompt flex items-center justify-between no-print">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-[#FF9933] p-2 rounded-lg text-white">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm text-gray-800">Kzana Counter</p>
+                            <p className="text-xs text-gray-500">
+                                {isIOS ? "ਇੰਸਟਾਲ ਕਰਨ ਲਈ 'Share' ਦੱਬੋ ਅਤੇ 'Add to Home Screen' ਚੁਣੋ" : "ਐਪ ਇੰਸਟਾਲ ਕਰੋ"}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        {!isIOS && (
+                            <button onClick={handleInstall} className="bg-[#1e3a8a] text-white text-xs font-bold px-3 py-2 rounded-lg shadow">
+                                Install
+                            </button>
+                        )}
+                        <button onClick={() => setShow(false)} className="text-gray-400 p-1 hover:text-gray-600">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
         // --- Calculator ---
         const CalculatorModal = ({ isOpen, onClose, onSave }) => {
             const [input, setInput] = useState("");
@@ -160,7 +234,7 @@
 
             useEffect(() => {
                 setPunjabiDate(getDetailedDate());
-                const saved = localStorage.getItem('sgpcCashV5_Final');
+                const saved = localStorage.getItem('sgpcCashV6_Final');
                 if (saved) {
                     const d = JSON.parse(saved);
                     setNotes(d.notes || {}); setExtraAmount(d.extraAmount || ""); setGurmukhiNumInput(d.gurmukhiNumInput || "");
@@ -171,7 +245,7 @@
             }, []);
 
             useEffect(() => {
-                localStorage.setItem('sgpcCashV5_Final', JSON.stringify({ 
+                localStorage.setItem('sgpcCashV6_Final', JSON.stringify({ 
                     notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate 
                 }));
             }, [notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate]);
@@ -218,9 +292,8 @@
 
             const printPDF = () => window.print();
 
-            // --- EXCEL EXPORT LOGIC ---
             const downloadExcel = () => {
-                let csvContent = "\uFEFF"; // BOM for Punjabi support
+                let csvContent = "\uFEFF"; 
                 let filename = "Data.csv";
 
                 if (activeTab === 'counter') {
@@ -481,7 +554,8 @@
                         <div className="h-4 no-print"></div>
                         <div className="no-print"><FooterCredit /></div>
                     </div>
-
+                    
+                    <InstallPrompt />
                     <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => setExtraAmount(val.toString())} />
                     
                     <div className="print-footer-container print-only">
