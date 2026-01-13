@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sgpc-cash-v1';
+const CACHE_NAME = 'sgpc-cash-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,13 +7,29 @@ const urlsToCache = [
   'https://unpkg.com/react@18/umd/react.development.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
   'https://unpkg.com/@babel/standalone/babel.min.js',
-  'https://unpkg.com/lucide@latest'
+  'icon-192.png',
+  'icon-512.png'
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Forces the new service worker to take over immediately
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
