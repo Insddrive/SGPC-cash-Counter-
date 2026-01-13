@@ -46,6 +46,12 @@
             input { border: none !important; background: transparent !important; padding: 0 !important; text-align: center; }
             .print-footer-container { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding-bottom: 10px; }
             .content-container { margin-bottom: 150px; }
+            /* Fix for input values not showing in PDF */
+            input[type="text"], input[type="number"] {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
         }
         .print-only { display: none; }
     </style>
@@ -91,6 +97,16 @@
             return str.trim() + " Only";
         };
 
+        const getDetailedDate = () => {
+            const d = new Date();
+            const day = d.getDate();
+            const month = d.toLocaleDateString('pa-IN', { month: 'long' });
+            const monthNum = d.getMonth() + 1;
+            const year = d.getFullYear();
+            const weekday = d.toLocaleDateString('pa-IN', { weekday: 'long' });
+            return `${weekday}, ${day} ${month} (${monthNum}) ${year}`;
+        };
+
         // --- Calculator ---
         const CalculatorModal = ({ isOpen, onClose, onSave }) => {
             const [input, setInput] = useState("");
@@ -132,14 +148,10 @@
             const [notes, setNotes] = useState({});
             const [extraAmount, setExtraAmount] = useState("");
             const [gurmukhiNumInput, setGurmukhiNumInput] = useState("");
-            
-            // Bundle State
-            const [bundles, setBundles] = useState({}); // smallVal, bigVal, bigCount
-            
-            // Average State
-            const [avgMethod, setAvgMethod] = useState("detailed"); // 'detailed' or 'direct'
-            const [avgValues, setAvgValues] = useState({}); // Stores VALUE not COUNT
+            const [bundles, setBundles] = useState({});
+            const [avgValues, setAvgValues] = useState({});
             const [avgDirectAmount, setAvgDirectAmount] = useState("");
+            const [avgMethod, setAvgMethod] = useState("detailed");
             const [startDate, setStartDate] = useState("");
             const [endDate, setEndDate] = useState("");
             
@@ -147,8 +159,8 @@
             const [punjabiDate, setPunjabiDate] = useState("");
 
             useEffect(() => {
-                setPunjabiDate(new Date().toLocaleDateString('pa-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
-                const saved = localStorage.getItem('sgpcCashV2_RealTime');
+                setPunjabiDate(getDetailedDate());
+                const saved = localStorage.getItem('sgpcCashV3_RealTime');
                 if (saved) {
                     const d = JSON.parse(saved);
                     setNotes(d.notes || {}); setExtraAmount(d.extraAmount || ""); setGurmukhiNumInput(d.gurmukhiNumInput || "");
@@ -159,12 +171,11 @@
             }, []);
 
             useEffect(() => {
-                localStorage.setItem('sgpcCashV2_RealTime', JSON.stringify({ 
+                localStorage.setItem('sgpcCashV3_RealTime', JSON.stringify({ 
                     notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate 
                 }));
             }, [notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate]);
 
-            // Real-time Calculations
             const counterTotal = () => {
                 let sum = 0; denoms.forEach(d => sum += (parseInt(cleanNumber(notes[d])) || 0) * d);
                 return sum + (parseInt(cleanNumber(extraAmount)) || 0);
@@ -197,7 +208,6 @@
 
             const avgResult = getAvgResults();
 
-            // Resets
             const handleReset = () => {
                 if (activeTab === 'counter') {
                     if(confirm("ਕੀ ਤੁਸੀਂ 'ਕੈਸ਼ ਕਾਊਂਟਰ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setNotes({}); setExtraAmount(""); setGurmukhiNumInput(""); }
@@ -228,15 +238,14 @@
                     <div className="header-bg shadow-lg z-20 sticky top-0 no-print pb-2">
                         <div className="p-2 flex justify-between items-start">
                             <div className="text-white pt-1 pl-2">
-                                <h1 className="text-[10px] font-bold opacity-90 uppercase">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ</h1>
-                                <h2 className="text-lg font-bold">ਸ੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ (ਖ਼ਜ਼ਾਨਾ)</h2>
+                                <h2 className="text-lg font-bold leading-tight drop-shadow-md">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ (ਖ਼ਜ਼ਾਨਾ)</h2>
+                                <div className="text-white/90 text-xs mt-1 font-medium">{punjabiDate}</div>
                             </div>
                             <button onClick={handleReset} className="bg-red-600 text-white p-2 rounded-lg shadow border border-white/20 active:scale-95">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                             </button>
                         </div>
-                        <div className="px-3">
-                            <div className="text-white/80 text-xs mb-2 text-center">{punjabiDate}</div>
+                        <div className="px-3 mt-1">
                             <div className="flex gap-2 p-1.5 rounded-2xl bg-white/10">
                                 <TabBtn id="counter" label="ਕੈਸ਼ ਕਾਊਂਟਰ" colorClass="bg-blue-600" />
                                 <TabBtn id="bundles" label="ਬੰਡਲ ਗਿਣਤੀ" colorClass="bg-yellow-500" />
@@ -256,14 +265,12 @@
 
                     <div className="flex-1 p-3 max-w-4xl mx-auto w-full content-container">
                         
-                        {/* --- COUNTER TAB --- */}
                         {activeTab === 'counter' && (
                             <div className="space-y-3 animate-in fade-in">
                                 <div className="bg-blue-600 text-white rounded-xl p-4 shadow-md flex justify-between items-center print:bg-white print:text-black print:border-2 print:border-black">
                                     <div><p className="text-[10px] font-bold uppercase opacity-80">ਕੁੱਲ ਮਾਇਆ</p><div className="text-3xl font-extrabold mt-1">₹ {formatIndianNumber(counterTotal())}</div></div>
                                     <div className="text-right w-1/2"><p className="text-xs italic">{numberToEnglish(counterTotal())}</p></div>
                                 </div>
-
                                 <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-3 flex gap-2 items-center print:border-black">
                                     <div className="flex-1">
                                         <label className="text-blue-800 font-bold text-xs block mb-1 print:text-black">ਹੋਰ ਰਕਮ / ਚਿੱਲਰ</label>
@@ -271,7 +278,6 @@
                                     </div>
                                     <button onClick={() => setShowCalc(true)} className="bg-blue-600 text-white p-3 rounded-lg shadow no-print mt-4"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="8" y1="18" x2="8" y2="18"/></svg></button>
                                 </div>
-
                                 <div className="bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden print:border-black">
                                     <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-gray-400 p-2 border-b bg-gray-50 print:text-black">
                                         <div className="col-span-3 text-right">ਨੋਟ</div><div className="col-span-4 text-center">ਗਿਣਤੀ</div><div className="col-span-5 text-right">ਕੁੱਲ</div>
@@ -292,14 +298,12 @@
                             </div>
                         )}
 
-                        {/* --- BUNDLES TAB --- */}
                         {activeTab === 'bundles' && (
                             <div className="space-y-3 animate-in fade-in">
                                 <div className="bg-yellow-500 text-black rounded-xl p-4 shadow-md flex justify-between items-center print:bg-white print:text-black print:border-2 print:border-black">
                                     <div><p className="text-[10px] font-bold uppercase opacity-70">ਬੰਡਲਾਂ ਦਾ ਕੁੱਲ ਜੋੜ</p><div className="text-3xl font-extrabold mt-1">₹ {formatIndianNumber(bundleTotal())}</div></div>
                                     <div className="text-right w-1/2"><p className="text-xs italic">{numberToEnglish(bundleTotal())}</p></div>
                                 </div>
-
                                 <div className="bg-white rounded-xl shadow-sm border border-yellow-200 overflow-hidden print:border-black">
                                     <div className="p-2 overflow-x-auto">
                                         <table className="w-full text-sm min-w-[350px]">
@@ -320,18 +324,10 @@
                                                 return (
                                                     <tr key={d} className="border-b last:border-0">
                                                         <td className="p-2 font-bold text-gray-700">₹{d}</td>
-                                                        <td className="p-1 border-l border-yellow-100">
-                                                            <input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.smallVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], smallVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/>
-                                                        </td>
-                                                        <td className="p-1 border-l border-yellow-100">
-                                                            <input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.bigVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/>
-                                                        </td>
-                                                        <td className="p-1 border-l border-yellow-100">
-                                                            <input type="number" placeholder="0" value={bundles[d]?.bigCount||""} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigCount: e.target.value}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded bg-yellow-50 placeholder-gray-300"/>
-                                                        </td>
-                                                        <td className="p-2 text-right font-bold text-gray-600 text-xs">
-                                                            {formatIndianNumber(total)}
-                                                        </td>
+                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.smallVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], smallVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/></td>
+                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.bigVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/></td>
+                                                        <td className="p-1 border-l border-yellow-100"><input type="number" placeholder="0" value={bundles[d]?.bigCount||""} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigCount: e.target.value}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded bg-yellow-50 placeholder-gray-300"/></td>
+                                                        <td className="p-2 text-right font-bold text-gray-600 text-xs">{formatIndianNumber(total)}</td>
                                                     </tr>
                                                 )
                                             })}
@@ -342,17 +338,15 @@
                             </div>
                         )}
 
-                        {/* --- AVERAGE TAB --- */}
                         {activeTab === 'average' && (
                             <div className="space-y-3 animate-in fade-in">
-                                <div className="bg-[#8B4513] p-3 rounded-xl shadow border border-yellow-900/20 print:border-black">
+                                <div className="bg-white p-3 rounded-xl shadow-sm border border-black/10 print:border-black">
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div><label className="text-[10px] font-bold uppercase text-white/80">ਮਿਤੀ ਤੋਂ</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full mt-1 p-1 bg-white rounded border"/></div>
-                                        <div><label className="text-[10px] font-bold uppercase text-white/80">ਮਿਤੀ ਤੱਕ</label><input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full mt-1 p-1 bg-white rounded border"/></div>
+                                        <div><label className="text-[10px] font-bold uppercase text-gray-500">ਮਿਤੀ ਤੋਂ</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full mt-1 p-1 bg-gray-50 rounded border"/></div>
+                                        <div><label className="text-[10px] font-bold uppercase text-gray-500">ਮਿਤੀ ਤੱਕ</label><input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full mt-1 p-1 bg-gray-50 rounded border"/></div>
                                     </div>
                                 </div>
 
-                                {/* Calculation Method Toggle */}
                                 <div className="flex gap-2 bg-gray-100 p-1 rounded-lg no-print">
                                     <button onClick={() => setAvgMethod('detailed')} className={`flex-1 py-1 text-xs font-bold rounded ${avgMethod === 'detailed' ? 'bg-white shadow text-[#8B4513]' : 'text-gray-400'}`}>ਨੋਟਾਂ ਦਾ ਵੇਰਵਾ</button>
                                     <button onClick={() => setAvgMethod('direct')} className={`flex-1 py-1 text-xs font-bold rounded ${avgMethod === 'direct' ? 'bg-white shadow text-[#8B4513]' : 'text-gray-400'}`}>ਸਿੱਧੀ ਰਕਮ</button>
@@ -378,6 +372,20 @@
                                                 })}
                                             </tbody>
                                         </table>
+                                        {/* Hidden table for print to show the input values */}
+                                        <div className="hidden print-only p-2">
+                                            <table className="w-full text-sm border-t mt-2">
+                                                <thead><tr><th className="text-left">ਨੋਟ</th><th className="text-right">ਕੁੱਲ ਰਕਮ (ਭਰੀ ਹੋਈ)</th><th className="text-right">ਔਸਤ</th></tr></thead>
+                                                <tbody>
+                                                    {denoms.map(d => {
+                                                        const val = parseInt(cleanNumber(avgValues[d]))||0;
+                                                        if(val === 0) return null;
+                                                        const avg = avgResult ? val/avgResult.days : 0;
+                                                        return <tr key={d}><td className="font-bold">₹{d}</td><td className="text-right">{formatIndianNumber(val)}</td><td className="text-right">{formatIndianNumber(avg.toFixed(2))}</td></tr>
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 print:border-black">
@@ -386,7 +394,6 @@
                                     </div>
                                 )}
 
-                                {/* Results (Real Time) */}
                                 {avgResult && avgResult.days > 0 ? (
                                     <div className="bg-stone-100 border border-stone-300 p-4 rounded-xl text-center print:border-black print:bg-transparent">
                                         <div className="grid grid-cols-2 gap-4 text-sm mb-2 border-b border-stone-200 pb-2">
