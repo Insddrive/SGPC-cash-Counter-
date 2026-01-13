@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SGPC ਖ਼ਜ਼ਾਨਾ ਮੈਨੇਜਰ</title>
+    
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF9933">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SGPC Cash">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/25/25694.png">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Gurmukhi:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans Gurmukhi', sans-serif;
+            background-color: #FFF8E1;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .input-box {
+            background: white;
+            border: 1px solid #FFCC80;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .input-box:focus { border-color: #1e3a8a; outline: none; box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1); }
+        .header-bg {
+            background: #FF9933;
+            background-image: radial-gradient(#d97706 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .footer-credit { font-size: 10px; color: #666; text-align: center; padding: 8px; background: #fff; border-top: 1px solid #eee; margin-top: auto; }
+        
+        @media print {
+            body { background: white; -webkit-print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            input { border: none !important; background: transparent !important; padding: 0 !important; text-align: center; }
+            .print-footer-container { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding-bottom: 10px; }
+            .content-container { margin-bottom: 150px; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Utils ---
+        const formatIndianNumber = (num) => {
+            if (!num) return "";
+            const cleanNum = num.toString().replace(/,/g, '');
+            if (isNaN(cleanNum) || cleanNum === "") return "";
+            return parseInt(cleanNum).toLocaleString('en-IN');
+        };
+        const cleanNumber = (val) => val ? val.toString().replace(/,/g, '') : "";
+        
+        const toGurmukhiNumerals = (input) => {
+            if (!input) return "";
+            const map = {'0':'੦','1':'੧','2':'੨','3':'੩','4':'੪','5':'੫','6':'੬','7':'੭','8':'੮','9':'੯'};
+            return input.toString().split('').map(char => map[char] || char).join('');
+        };
+
+        const numberToEnglish = (n) => {
+            if (n === 0) return "Zero Only";
+            const single = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+            const double = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+            const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+            const convert = (num) => {
+                if (num < 10) return single[num];
+                if (num < 20) return double[num - 10];
+                if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? " " + single[num % 10] : "");
+                if (num < 1000) return single[Math.floor(num / 100)] + " Hundred" + (num % 100 !== 0 ? " " + convert(num % 100) : "");
+                return "";
+            };
+            let str = ""; let num = Math.floor(n);
+            if (num >= 10000000) { str += convert(Math.floor(num / 10000000)) + " Crore "; num %= 10000000; }
+            if (num >= 100000) { str += convert(Math.floor(num / 100000)) + " Lakh "; num %= 100000; }
+            if (num >= 1000) { str += convert(Math.floor(num / 1000)) + " Thousand "; num %= 1000; }
+            if (num > 0) { str += convert(num); }
+            return str.trim() + " Only";
+        };
+
+        // --- Calculator ---
+        const CalculatorModal = ({ isOpen, onClose, onSave }) => {
+            const [input, setInput] = useState("");
+            useEffect(() => { if(isOpen) setInput(""); }, [isOpen]);
+            if (!isOpen) return null;
+            const handleBtn = (val) => setInput(prev => prev + val);
+            const calculate = () => {
+                try {
+                    const res = Function('"use strict";return (' + input.replace(/[^-()\d/*+.]/g, '') + ')')();
+                    onSave(Math.floor(res)); onClose();
+                } catch (e) { alert("ਗਲਤ ਹਿਸਾਬ"); }
+            };
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 no-print">
+                    <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                        <div className="bg-[#1e3a8a] p-3 flex justify-between items-center text-white">
+                            <h3 className="font-bold">ਕੈਲਕੁਲੇਟਰ</h3><button onClick={onClose} className="text-2xl">&times;</button>
+                        </div>
+                        <div className="bg-gray-50 border-b p-3 text-right text-3xl font-mono font-bold">{input || "0"}</div>
+                        <div className="grid grid-cols-4 gap-2 p-3 bg-gray-100">
+                            {['7','8','9','/','4','5','6','*','1','2','3','-'].map(b => <button key={b} onClick={() => handleBtn(b)} className="p-4 bg-white rounded shadow font-bold text-xl text-blue-900">{b.replace('*','×')}</button>)}
+                            <button onClick={() => setInput("")} className="p-4 bg-red-100 text-red-700 rounded font-bold">C</button>
+                            <button onClick={() => handleBtn('0')} className="p-4 bg-white rounded shadow font-bold text-xl">0</button>
+                            <button onClick={() => setInput(prev => prev.slice(0, -1))} className="p-4 bg-orange-100 text-orange-700 rounded font-bold">⌫</button>
+                            <button onClick={() => handleBtn('+')} className="p-4 bg-white rounded shadow font-bold text-xl">+</button>
+                            <button onClick={calculate} className="col-span-4 p-3 bg-[#FF9933] text-white rounded shadow font-bold mt-1">ਨਤੀਜਾ ਜੋੜੋ (SAVE)</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- App ---
+        const App = () => {
+            const [activeTab, setActiveTab] = useState("counter");
+            const denoms = [500, 200, 100, 50, 20, 10, 5, 2, 1];
+
+            // State
+            const [notes, setNotes] = useState({});
+            const [extraAmount, setExtraAmount] = useState("");
+            const [gurmukhiNumInput, setGurmukhiNumInput] = useState("");
+            const [bundles, setBundles] = useState({});
+            const [avgNotes, setAvgNotes] = useState({});
+            const [startDate, setStartDate] = useState("");
+            const [endDate, setEndDate] = useState("");
+            const [calculatedAvg, setCalculatedAvg] = useState(null);
+            const [showCalc, setShowCalc] = useState(false);
+            const [punjabiDate, setPunjabiDate] = useState("");
+
+            useEffect(() => {
+                setPunjabiDate(new Date().toLocaleDateString('pa-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+                const saved = localStorage.getItem('sgpcCashGithub_v1');
+                if (saved) {
+                    const d = JSON.parse(saved);
+                    setNotes(d.notes || {}); setExtraAmount(d.extraAmount || ""); setGurmukhiNumInput(d.gurmukhiNumInput || "");
+                    setBundles(d.bundles || {}); setAvgNotes(d.avgNotes || {}); 
+                    setStartDate(d.startDate || ""); setEndDate(d.endDate || "");
+                }
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('sgpcCashGithub_v1', JSON.stringify({ notes, extraAmount, gurmukhiNumInput, bundles, avgNotes, startDate, endDate }));
+            }, [notes, extraAmount, gurmukhiNumInput, bundles, avgNotes, startDate, endDate]);
+
+            // RESET LOGIC (Tab Specific)
+            const handleReset = () => {
+                if (activeTab === 'counter') {
+                    if(confirm("ਕੀ ਤੁਸੀਂ 'ਕੈਸ਼ ਕਾਊਂਟਰ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setNotes({}); setExtraAmount(""); setGurmukhiNumInput(""); }
+                } else if (activeTab === 'bundles') {
+                    if(confirm("ਕੀ ਤੁਸੀਂ 'ਬੰਡਲ ਗਿਣਤੀ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) setBundles({});
+                } else if (activeTab === 'average') {
+                    if(confirm("ਕੀ ਤੁਸੀਂ 'ਔਸਤ' ਡਾਟਾ ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setAvgNotes({}); setStartDate(""); setEndDate(""); setCalculatedAvg(null); }
+                }
+            };
+
+            const calcCounterTotal = () => {
+                let sum = 0; denoms.forEach(d => sum += (parseInt(cleanNumber(notes[d])) || 0) * d);
+                return sum + (parseInt(cleanNumber(extraAmount)) || 0);
+            };
+
+            const calcBundleTotal = () => {
+                let sum = 0;
+                denoms.forEach(d => {
+                    const smallVal = parseInt(cleanNumber(bundles[d]?.smallVal)) || 0;
+                    const smallCount = parseInt(cleanNumber(bundles[d]?.smallCount)) || 0;
+                    const bigVal = parseInt(cleanNumber(bundles[d]?.bigVal)) || 0;
+                    const bigCount = parseInt(cleanNumber(bundles[d]?.bigCount)) || 0;
+                    sum += (smallVal * smallCount) + (bigVal * bigCount);
+                });
+                return sum;
+            };
+
+            const calcAvg = () => {
+                if (!startDate || !endDate) return alert("ਤਰੀਕਾਂ ਭਰੋ");
+                const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (86400000)) + 1;
+                if (days <= 0) return alert("ਤਰੀਕਾਂ ਗਲਤ ਹਨ");
+                let sum = 0; denoms.forEach(d => sum += (parseInt(cleanNumber(avgNotes[d])) || 0) * d);
+                setCalculatedAvg({ days, grandTotal: sum, dailyGrandAvg: sum / days });
+            };
+
+            const printPDF = () => window.print();
+
+            // Colors for tabs
+            const getTabColor = (id) => {
+                if (activeTab !== id) return 'text-white/60 hover:bg-white/10';
+                if (id === 'counter') return 'bg-white text-blue-900 shadow-lg scale-105';
+                if (id === 'bundles') return 'bg-white text-green-800 shadow-lg scale-105';
+                if (id === 'average') return 'bg-white text-purple-900 shadow-lg scale-105';
+            };
+
+            const TabBtn = ({ id, label }) => (
+                <button onClick={() => setActiveTab(id)} className={`flex-1 py-3 px-2 rounded-xl text-sm font-bold transition-all duration-200 ${getTabColor(id)}`}>
+                    {label}
+                </button>
+            );
+
+            const FooterCredit = () => (
+                <div className="footer-credit mt-auto">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
+            );
+
+            return (
+                <>
+                    <div className="header-bg shadow-lg z-20 sticky top-0 no-print pb-2">
+                        <div className="p-2 flex justify-between items-start">
+                            <div className="text-white pt-1 pl-2">
+                                <h1 className="text-[10px] font-bold opacity-90 uppercase">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ</h1>
+                                <h2 className="text-lg font-bold">ਸ੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ (ਖ਼ਜ਼ਾਨਾ)</h2>
+                            </div>
+                            <button onClick={handleReset} className="bg-red-600 text-white p-2 rounded-lg shadow border border-white/20 active:scale-95">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                        <div className="px-3">
+                            <div className="text-white/80 text-xs mb-2 text-center">{punjabiDate}</div>
+                            <div className="flex gap-2 bg-black/10 p-1.5 rounded-2xl">
+                                <TabBtn id="counter" label="ਕੈਸ਼ ਕਾਊਂਟਰ" />
+                                <TabBtn id="bundles" label="ਬੰਡਲ ਗਿਣਤੀ" />
+                                <TabBtn id="average" label="ਔਸਤ (Average)" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="print-only text-center p-4 border-b-2 border-black mb-4">
+                        <h1 className="text-2xl font-bold">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ</h1>
+                        <h2 className="text-xl">ਸ੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ, ਸ੍ਰੀ ਅੰਮ੍ਰਿਤਸਰ</h2>
+                        <h3 className="text-lg font-bold mt-2 underline uppercase">
+                            {activeTab === 'counter' ? 'ਰੋਜ਼ਾਨਾ ਖ਼ਜ਼ਾਨਾ' : activeTab === 'bundles' ? 'ਬੰਡਲ ਗਿਣਤੀ' : 'ਔਸਤ ਰਿਪੋਰਟ'}
+                        </h3>
+                        <p>ਤਰੀਕ: {punjabiDate}</p>
+                    </div>
+
+                    <div className="flex-1 p-3 max-w-4xl mx-auto w-full content-container">
+                        
+                        {/* COUNTER TAB */}
+                        {activeTab === 'counter' && (
+                            <div className="space-y-3 animate-in fade-in">
+                                <div className="bg-[#1e3a8a] text-white rounded-xl p-4 shadow-md flex justify-between items-center print:bg-white print:text-black print:border-2 print:border-black">
+                                    <div><p className="text-[10px] font-bold uppercase">ਕੁੱਲ ਮਾਇਆ</p><div className="text-3xl font-extrabold mt-1">₹ {formatIndianNumber(calcCounterTotal())}</div></div>
+                                    <div className="text-right w-1/2"><p className="text-xs italic">{numberToEnglish(calcCounterTotal())}</p></div>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-3 flex gap-2 items-center print:border-black">
+                                    <div className="flex-1">
+                                        <label className="text-[#1e3a8a] font-bold text-xs block mb-1 print:text-black">ਹੋਰ ਰਕਮ / ਚਿੱਲਰ</label>
+                                        <input type="text" inputMode="numeric" value={formatIndianNumber(extraAmount)} onChange={e => setExtraAmount(cleanNumber(e.target.value))} className="input-box w-full p-2 rounded text-lg font-bold text-blue-900 print:text-black print:pl-0" placeholder="0"/>
+                                    </div>
+                                    <button onClick={() => setShowCalc(true)} className="bg-[#1e3a8a] text-white p-3 rounded-lg shadow no-print mt-4"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="8" y1="18" x2="8" y2="18"/></svg></button>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden print:border-black">
+                                    <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-gray-400 p-2 border-b bg-gray-50 print:text-black">
+                                        <div className="col-span-3 text-right">ਨੋਟ</div><div className="col-span-4 text-center">ਗਿਣਤੀ</div><div className="col-span-5 text-right">ਕੁੱਲ</div>
+                                    </div>
+                                    {denoms.map(d => (
+                                        <div key={d} className="grid grid-cols-12 gap-2 items-center border-b border-gray-50 p-2 print:border-gray-200">
+                                            <div className="col-span-3 text-right font-bold text-gray-700 text-lg print:text-black">₹{d}</div>
+                                            <div className="col-span-4"><input type="number" value={notes[d] || ""} onChange={e => setNotes({...notes, [d]: e.target.value})} placeholder="0" className="input-box w-full p-1.5 rounded text-center text-lg font-bold text-blue-900 print:text-black"/></div>
+                                            <div className="col-span-5 text-right font-medium text-gray-600 print:text-black">{formatIndianNumber((parseInt(notes[d])||0)*d)}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-orange-50 rounded-xl border border-orange-200 p-3 no-print flex gap-2 items-center">
+                                    <input type="number" value={gurmukhiNumInput} onChange={e => setGurmukhiNumInput(e.target.value)} placeholder="123" className="w-1/3 input-box p-2 rounded text-center"/>
+                                    <span className="text-orange-400">➔</span>
+                                    <div className="flex-1 font-bold text-xl text-[#1e3a8a]">{gurmukhiNumInput ? toGurmukhiNumerals(gurmukhiNumInput) : "-"}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* BUNDLES TAB */}
+                        {activeTab === 'bundles' && (
+                            <div className="space-y-3 animate-in fade-in">
+                                <div className="bg-green-800 text-white rounded-xl p-4 shadow-md flex justify-between items-center print:bg-white print:text-black print:border-2 print:border-black">
+                                    <div><p className="text-[10px] font-bold uppercase">ਬੰਡਲਾਂ ਦਾ ਕੁੱਲ ਜੋੜ</p><div className="text-3xl font-extrabold mt-1">₹ {formatIndianNumber(calcBundleTotal())}</div></div>
+                                    <div className="text-right w-1/2"><p className="text-xs italic">{numberToEnglish(calcBundleTotal())}</p></div>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden print:border-black">
+                                    <div className="p-2 overflow-x-auto">
+                                        <table className="w-full text-sm min-w-[500px]">
+                                            <thead className="bg-green-50 text-green-900 border-b print:bg-gray-100">
+                                                <tr>
+                                                    <th className="p-2 text-left w-12">ਨੋਟ</th>
+                                                    <th className="p-2 text-center border-l border-green-200">ਛੋਟਾ ਬੰਡਲ<br/><span className="text-[9px] font-normal">(ਮੁੱਲ / ਗਿਣਤੀ)</span></th>
+                                                    <th className="p-2 text-center border-l border-green-200">ਵੱਡਾ ਬੰਡਲ<br/><span className="text-[9px] font-normal">(ਮੁੱਲ / ਗਿਣਤੀ)</span></th>
+                                                    <th className="p-2 text-right">ਕੁੱਲ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {denoms.map(d => {
+                                                const sv = parseInt(cleanNumber(bundles[d]?.smallVal))||0;
+                                                const sc = parseInt(cleanNumber(bundles[d]?.smallCount))||0;
+                                                const bv = parseInt(cleanNumber(bundles[d]?.bigVal))||0;
+                                                const bc = parseInt(cleanNumber(bundles[d]?.bigCount))||0;
+                                                return (
+                                                    <tr key={d} className="border-b last:border-0">
+                                                        <td className="p-2 font-bold text-gray-700">₹{d}</td>
+                                                        <td className="p-1 border-l border-green-50">
+                                                            <div className="flex gap-1">
+                                                                <input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.smallVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], smallVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/>
+                                                                <input type="number" placeholder="ਗਿਣਤੀ" value={bundles[d]?.smallCount||""} onChange={e => setBundles({...bundles, [d]:{...bundles[d], smallCount: e.target.value}})} className="w-12 p-1.5 input-box text-center text-xs font-bold rounded bg-green-50 placeholder-gray-300"/>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-1 border-l border-green-50">
+                                                            <div className="flex gap-1">
+                                                                <input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.bigVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/>
+                                                                <input type="number" placeholder="ਗਿਣਤੀ" value={bundles[d]?.bigCount||""} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigCount: e.target.value}})} className="w-12 p-1.5 input-box text-center text-xs font-bold rounded bg-green-50 placeholder-gray-300"/>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 text-right font-bold text-gray-600">
+                                                            {formatIndianNumber((sv*sc) + (bv*bc))}
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* AVERAGE TAB */}
+                        {activeTab === 'average' && (
+                            <div className="space-y-3 animate-in fade-in">
+                                <div className="bg-purple-50 p-3 rounded-xl border border-purple-100 print:border-black">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div><label className="text-[10px] font-bold uppercase">ਮਿਤੀ ਤੋਂ</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full mt-1 p-1 bg-white rounded border"/></div>
+                                        <div><label className="text-[10px] font-bold uppercase">ਮਿਤੀ ਤੱਕ</label><input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full mt-1 p-1 bg-white rounded border"/></div>
+                                    </div>
+                                </div>
+                                <div className="bg-white rounded-xl shadow-sm border border-purple-100 overflow-hidden print:border-black">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-purple-50 text-purple-900 border-b">
+                                            <tr><th className="p-2 text-right">ਨੋਟ</th><th className="p-2 text-center no-print">ਕੁੱਲ ਗਿਣਤੀ</th><th className="p-2 text-right">ਕੁੱਲ ਰਕਮ</th><th className="p-2 text-right bg-purple-100">ਰੋਜ਼ਾਨਾ ਔਸਤ</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            {denoms.map(d => {
+                                                const c = parseInt(cleanNumber(avgNotes[d]))||0;
+                                                const val = c*d; const avg = calculatedAvg ? val/calculatedAvg.days : 0;
+                                                return (
+                                                    <tr key={d} className="border-b last:border-0">
+                                                        <td className="p-2 text-right font-bold">₹{d}</td>
+                                                        <td className="p-1 no-print"><input type="number" value={avgNotes[d]||""} onChange={e => setAvgNotes({...avgNotes, [d]:e.target.value})} placeholder="0" className="w-full p-1.5 input-box text-center font-bold"/></td>
+                                                        <td className="p-2 text-right font-medium">{formatIndianNumber(val)}</td>
+                                                        <td className="p-2 text-right font-bold text-purple-900 bg-purple-50">{formatIndianNumber(avg.toFixed(2))}</td>
+                                                    </tr>
+                                                )
+                                            })}
+                                            <tr className="bg-purple-900 text-white font-bold print:bg-gray-200 print:text-black">
+                                                <td className="p-2 text-right">ਟੋਟਲ</td><td className="p-2 no-print">-</td>
+                                                <td className="p-2 text-right">₹{calculatedAvg ? formatIndianNumber(calculatedAvg.grandTotal) : "0"}</td>
+                                                <td className="p-2 text-right text-lg">₹{calculatedAvg ? formatIndianNumber(calculatedAvg.dailyGrandAvg.toFixed(2)) : "0"}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button onClick={calcAvg} className="w-full bg-purple-700 text-white font-bold py-3 rounded-xl shadow no-print">ਔਸਤ ਕੱਢੋ</button>
+                                {calculatedAvg && <div className="bg-purple-50 border border-purple-200 p-3 rounded text-center"><p>ਕੁੱਲ ਦਿਨ: <b>{calculatedAvg.days}</b> | ਰੋਜ਼ਾਨਾ ਕੁੱਲ ਔਸਤ: <b className="text-purple-900 text-xl">₹ {formatIndianNumber(calculatedAvg.dailyGrandAvg.toFixed(2))}</b></p></div>}
+                            </div>
+                        )}
+
+                        <button onClick={printPDF} className="w-full bg-[#333] text-white font-bold py-4 rounded-xl shadow-lg mt-4 flex justify-center items-center gap-2 no-print">PDF ਬਣਾਓ / ਪ੍ਰਿੰਟ ਕਰੋ</button>
+                        <div className="h-4 no-print"></div>
+                        <div className="no-print"><FooterCredit /></div>
+                    </div>
+
+                    <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => setExtraAmount(val.toString())} />
+                    
+                    <div className="print-footer-container print-only">
+                        <div className="flex justify-between px-10 mb-4 pt-4">
+                            <div className="text-center"><div className="h-10"></div><div className="border-t-2 border-black w-48 mx-auto"></div><p className="font-bold mt-1">ਸੁਪਰਵਾਈਜ਼ਰ/ਇੰਚਾਰਜ</p></div>
+                            <div className="text-center"><div className="h-10"></div><div className="border-t-2 border-black w-48 mx-auto"></div><p className="font-bold mt-1">ਮੈਨੇਜਰ</p></div>
+                        </div>
+                        <FooterCredit />
+                    </div>
+                </>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => console.log('SW Registered'));
+        }
+    </script>
+</body>
+</html>
+
