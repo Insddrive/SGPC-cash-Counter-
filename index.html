@@ -43,14 +43,22 @@
             body { background: white; -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            input { border: none !important; background: transparent !important; padding: 0 !important; text-align: center; }
             .print-footer-container { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding-bottom: 10px; }
             .content-container { margin-bottom: 150px; }
-            /* Fix for input values not showing in PDF */
-            input[type="text"], input[type="number"] {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
+            
+            /* Input styling for print to look like text */
+            input { 
+                border: none !important; 
+                background: transparent !important; 
+                padding: 0 !important; 
+                text-align: center;
+                font-weight: bold;
+                color: black !important;
+                box-shadow: none !important;
+            }
+            /* Specifically for the average table middle column */
+            .avg-amount-input {
+                text-align: right !important;
             }
         }
         .print-only { display: none; }
@@ -160,7 +168,7 @@
 
             useEffect(() => {
                 setPunjabiDate(getDetailedDate());
-                const saved = localStorage.getItem('sgpcCashV3_RealTime');
+                const saved = localStorage.getItem('sgpcCashV4_Final');
                 if (saved) {
                     const d = JSON.parse(saved);
                     setNotes(d.notes || {}); setExtraAmount(d.extraAmount || ""); setGurmukhiNumInput(d.gurmukhiNumInput || "");
@@ -171,7 +179,7 @@
             }, []);
 
             useEffect(() => {
-                localStorage.setItem('sgpcCashV3_RealTime', JSON.stringify({ 
+                localStorage.setItem('sgpcCashV4_Final', JSON.stringify({ 
                     notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate 
                 }));
             }, [notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate]);
@@ -355,37 +363,36 @@
                                 {avgMethod === 'detailed' ? (
                                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden print:border-black">
                                         <table className="w-full text-sm">
-                                            <thead className="bg-stone-50 text-stone-900 border-b">
-                                                <tr><th className="p-2 text-right w-16">ਨੋਟ</th><th className="p-2 text-center no-print">ਕੁੱਲ ਰਕਮ ਭਰੋ<br/><span className="text-[9px] font-normal text-red-500">(ਨੋਟਾਂ ਦੀ ਗਿਣਤੀ ਨਹੀਂ)</span></th><th className="p-2 text-right bg-stone-100">ਰੋਜ਼ਾਨਾ ਔਸਤ</th></tr>
+                                            <thead className="bg-stone-50 text-stone-900 border-b print:bg-gray-100">
+                                                <tr>
+                                                    <th className="p-2 text-right w-16">ਨੋਟ</th>
+                                                    <th className="p-2 text-center w-1/2">ਕੁੱਲ ਰਕਮ ਭਰੋ<br/><span className="text-[9px] font-normal text-red-500 print:hidden">(ਨੋਟਾਂ ਦੀ ਗਿਣਤੀ ਨਹੀਂ)</span></th>
+                                                    <th className="p-2 text-right bg-stone-100 print:bg-transparent">ਰੋਜ਼ਾਨਾ ਔਸਤ</th>
+                                                </tr>
                                             </thead>
                                             <tbody>
                                                 {denoms.map(d => {
                                                     const val = parseInt(cleanNumber(avgValues[d]))||0;
                                                     const avg = avgResult ? val/avgResult.days : 0;
                                                     return (
-                                                        <tr key={d} className="border-b last:border-0">
+                                                        <tr key={d} className="border-b last:border-0 print:border-gray-200">
                                                             <td className="p-2 text-right font-bold">₹{d}</td>
-                                                            <td className="p-1 no-print"><input type="text" inputMode="numeric" value={formatIndianNumber(avgValues[d])} onChange={e => setAvgValues({...avgValues, [d]: cleanNumber(e.target.value)})} placeholder="0" className="w-full p-1.5 input-box text-center font-bold"/></td>
-                                                            <td className="p-2 text-right font-bold text-stone-900 bg-stone-50">{formatIndianNumber(avg.toFixed(2))}</td>
+                                                            <td className="p-1">
+                                                                <input 
+                                                                    type="text" 
+                                                                    inputMode="numeric" 
+                                                                    value={formatIndianNumber(avgValues[d])} 
+                                                                    onChange={e => setAvgValues({...avgValues, [d]: cleanNumber(e.target.value)})} 
+                                                                    placeholder="0" 
+                                                                    className="w-full p-1.5 input-box text-center font-bold avg-amount-input print:text-right print:pr-4"
+                                                                />
+                                                            </td>
+                                                            <td className="p-2 text-right font-bold text-stone-900 bg-stone-50 print:bg-transparent">{formatIndianNumber(avg.toFixed(2))}</td>
                                                         </tr>
                                                     )
                                                 })}
                                             </tbody>
                                         </table>
-                                        {/* Hidden table for print to show the input values */}
-                                        <div className="hidden print-only p-2">
-                                            <table className="w-full text-sm border-t mt-2">
-                                                <thead><tr><th className="text-left">ਨੋਟ</th><th className="text-right">ਕੁੱਲ ਰਕਮ (ਭਰੀ ਹੋਈ)</th><th className="text-right">ਔਸਤ</th></tr></thead>
-                                                <tbody>
-                                                    {denoms.map(d => {
-                                                        const val = parseInt(cleanNumber(avgValues[d]))||0;
-                                                        if(val === 0) return null;
-                                                        const avg = avgResult ? val/avgResult.days : 0;
-                                                        return <tr key={d}><td className="font-bold">₹{d}</td><td className="text-right">{formatIndianNumber(val)}</td><td className="text-right">{formatIndianNumber(avg.toFixed(2))}</td></tr>
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        </div>
                                     </div>
                                 ) : (
                                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 print:border-black">
