@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sgpc-cash-v4';
+const CACHE_NAME = 'sgpc-cash-v5';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const urlsToCache = [
   'https://unpkg.com/react@18/umd/react.development.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
   'https://unpkg.com/@babel/standalone/babel.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js',
   'icon-192.png'
 ];
 
