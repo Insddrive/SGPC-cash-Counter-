@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kzana Counter</title>
     
-    <!-- PWA Setup for Android & iOS -->
+    <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF9933">
-    
-    <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Kzana Counter">
     <link rel="apple-touch-icon" href="icon-192.png">
     
     <!-- Libraries -->
@@ -27,37 +24,51 @@
         
         body {
             font-family: 'Noto Sans Gurmukhi', sans-serif;
-            background-color: #FFF8E1;
+            background-color: #f8f5f2;
             -webkit-tap-highlight-color: transparent;
             display: flex; flex-direction: column; min-height: 100vh;
-            overscroll-behavior-y: none; /* Disables pull-to-refresh on mobile */
+            overscroll-behavior-y: none;
         }
+        /* Compact Input Box */
         .input-box {
-            background: white; border: 1px solid #FFCC80;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;
+            background: white; border: 1px solid #e5e7eb;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0.03); 
+            transition: all 0.1s;
+            border-radius: 4px; /* Slightly sharper corners for compact look */
         }
-        .input-box:focus { border-color: #1e3a8a; outline: none; box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1); }
+        .input-box:focus { border-color: #1e3a8a; outline: none; box-shadow: 0 0 0 1px rgba(30, 58, 138, 0.1); }
+        
         .header-bg {
             background: #FF9933;
-            background-image: radial-gradient(#d97706 1px, transparent 1px);
+            background-image: linear-gradient(45deg, #FF9933 25%, #f58f29 25%, #f58f29 50%, #FF9933 50%, #FF9933 75%, #f58f29 75%, #f58f29 100%);
             background-size: 20px 20px;
         }
-        .footer-credit { font-size: 10px; color: #666; text-align: center; padding: 8px; background: #fff; border-top: 1px solid #eee; margin-top: auto; }
         
-        /* Install Prompt Animation */
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .install-prompt { animation: slideUp 0.5s ease-out; }
+        /* Green Footer Styling */
+        .footer-credit { 
+            font-size: 11px; 
+            font-weight: 700;
+            color: #15803d; /* Green-700 */
+            background-color: #f0fdf4; /* Green-50 */
+            text-align: center; 
+            padding: 6px; 
+            border-top: 1px solid #bbf7d0; 
+            margin-top: auto; 
+        }
+
+        /* Scrollbar hide */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
 
         @media print {
             body { background: white; -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            .print-footer-container { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding-bottom: 10px; }
-            .content-container { margin-bottom: 150px; }
-            
+            .print-footer-container { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding-bottom: 5px; }
+            .content-container { margin-bottom: 100px; }
             input { 
                 border: none !important; background: transparent !important; 
                 padding: 0 !important; text-align: center; font-weight: bold; color: black !important;
+                font-size: 12px;
             }
             .avg-amount-input { text-align: right !important; }
         }
@@ -115,29 +126,17 @@
             return `${weekday}, ${day} ${month} (${monthNum}) ${year}`;
         };
 
-        // --- Install Prompt Component ---
+        // --- Install Prompt ---
         const InstallPrompt = () => {
             const [deferredPrompt, setDeferredPrompt] = useState(null);
             const [show, setShow] = useState(false);
             const [isIOS, setIsIOS] = useState(false);
 
             useEffect(() => {
-                // Check if iOS
                 const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
                 const isInStandalone = window.navigator.standalone || (window.matchMedia('(display-mode: standalone)').matches);
-                
-                if (ios && !isInStandalone) {
-                    setIsIOS(true);
-                    // Show iOS instruction after 2 seconds
-                    setTimeout(() => setShow(true), 2000);
-                }
-
-                // Android / Desktop handling
-                const handler = (e) => {
-                    e.preventDefault();
-                    setDeferredPrompt(e);
-                    setShow(true);
-                };
+                if (ios && !isInStandalone) { setIsIOS(true); setTimeout(() => setShow(true), 3000); }
+                const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); setShow(true); };
                 window.addEventListener('beforeinstallprompt', handler);
                 return () => window.removeEventListener('beforeinstallprompt', handler);
             }, []);
@@ -146,37 +145,16 @@
                 if (!deferredPrompt) return;
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    setShow(false);
-                }
+                if (outcome === 'accepted') setShow(false);
                 setDeferredPrompt(null);
             };
 
             if (!show) return null;
-
             return (
-                <div className="fixed bottom-4 left-4 right-4 bg-white rounded-xl shadow-2xl p-4 z-50 border border-gray-200 install-prompt flex items-center justify-between no-print">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-[#FF9933] p-2 rounded-lg text-white">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        </div>
-                        <div>
-                            <p className="font-bold text-sm text-gray-800">Kzana Counter</p>
-                            <p className="text-xs text-gray-500">
-                                {isIOS ? "ਇੰਸਟਾਲ ਕਰਨ ਲਈ 'Share' ਦੱਬੋ ਅਤੇ 'Add to Home Screen' ਚੁਣੋ" : "ਐਪ ਇੰਸਟਾਲ ਕਰੋ"}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex gap-2">
-                        {!isIOS && (
-                            <button onClick={handleInstall} className="bg-[#1e3a8a] text-white text-xs font-bold px-3 py-2 rounded-lg shadow">
-                                Install
-                            </button>
-                        )}
-                        <button onClick={() => setShow(false)} className="text-gray-400 p-1 hover:text-gray-600">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        </button>
-                    </div>
+                <div className="fixed top-2 right-2 bg-white rounded shadow-lg p-2 z-50 border border-gray-200 flex items-center gap-2 no-print animate-bounce">
+                    <span className="text-xs font-bold text-blue-900">{isIOS ? "Install: Share > Add to Home" : "Install App"}</span>
+                    {!isIOS && <button onClick={handleInstall} className="bg-blue-600 text-white text-[10px] px-2 py-1 rounded">GET</button>}
+                    <button onClick={() => setShow(false)} className="text-gray-400 font-bold px-1">&times;</button>
                 </div>
             );
         };
@@ -194,19 +172,19 @@
                 } catch (e) { alert("ਗਲਤ ਹਿਸਾਬ"); }
             };
             return (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 no-print">
-                    <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-                        <div className="bg-[#1e3a8a] p-3 flex justify-between items-center text-white">
-                            <h3 className="font-bold">ਕੈਲਕੁਲੇਟਰ</h3><button onClick={onClose} className="text-2xl">&times;</button>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end justify-center z-50 no-print">
+                    <div className="bg-white w-full max-w-sm shadow-2xl rounded-t-2xl">
+                        <div className="bg-[#1e3a8a] p-2 flex justify-between items-center text-white rounded-t-2xl">
+                            <h3 className="font-bold text-sm">ਕੈਲਕੁਲੇਟਰ</h3><button onClick={onClose} className="text-xl font-bold px-2">&times;</button>
                         </div>
-                        <div className="bg-gray-50 border-b p-3 text-right text-3xl font-mono font-bold">{input || "0"}</div>
-                        <div className="grid grid-cols-4 gap-2 p-3 bg-gray-100">
-                            {['7','8','9','/','4','5','6','*','1','2','3','-'].map(b => <button key={b} onClick={() => handleBtn(b)} className="p-4 bg-white rounded shadow font-bold text-xl text-blue-900">{b.replace('*','×')}</button>)}
-                            <button onClick={() => setInput("")} className="p-4 bg-red-100 text-red-700 rounded font-bold">C</button>
-                            <button onClick={() => handleBtn('0')} className="p-4 bg-white rounded shadow font-bold text-xl">0</button>
-                            <button onClick={() => setInput(prev => prev.slice(0, -1))} className="p-4 bg-orange-100 text-orange-700 rounded font-bold">⌫</button>
-                            <button onClick={() => handleBtn('+')} className="p-4 bg-white rounded shadow font-bold text-xl">+</button>
-                            <button onClick={calculate} className="col-span-4 p-3 bg-[#FF9933] text-white rounded shadow font-bold mt-1">ਨਤੀਜਾ ਜੋੜੋ (SAVE)</button>
+                        <div className="bg-gray-50 border-b p-2 text-right text-2xl font-mono font-bold h-12 flex items-center justify-end">{input || "0"}</div>
+                        <div className="grid grid-cols-4 gap-1 p-2 bg-gray-100">
+                            {['7','8','9','/','4','5','6','*','1','2','3','-'].map(b => <button key={b} onClick={() => handleBtn(b)} className="p-3 bg-white rounded shadow-sm font-bold text-lg text-blue-900 active:bg-blue-50">{b.replace('*','×')}</button>)}
+                            <button onClick={() => setInput("")} className="p-3 bg-red-50 text-red-600 rounded font-bold border border-red-100">C</button>
+                            <button onClick={() => handleBtn('0')} className="p-3 bg-white rounded shadow-sm font-bold text-lg">0</button>
+                            <button onClick={() => setInput(prev => prev.slice(0, -1))} className="p-3 bg-orange-50 text-orange-600 rounded font-bold border border-orange-100">⌫</button>
+                            <button onClick={() => handleBtn('+')} className="p-3 bg-white rounded shadow-sm font-bold text-lg">+</button>
+                            <button onClick={calculate} className="col-span-4 p-2 bg-[#FF9933] text-white rounded shadow font-bold active:bg-orange-600">ਜੋੜੋ (SAVE)</button>
                         </div>
                     </div>
                 </div>
@@ -234,7 +212,7 @@
 
             useEffect(() => {
                 setPunjabiDate(getDetailedDate());
-                const saved = localStorage.getItem('sgpcCashV6_Final');
+                const saved = localStorage.getItem('sgpcCashV7_Compact');
                 if (saved) {
                     const d = JSON.parse(saved);
                     setNotes(d.notes || {}); setExtraAmount(d.extraAmount || ""); setGurmukhiNumInput(d.gurmukhiNumInput || "");
@@ -245,12 +223,11 @@
             }, []);
 
             useEffect(() => {
-                localStorage.setItem('sgpcCashV6_Final', JSON.stringify({ 
+                localStorage.setItem('sgpcCashV7_Compact', JSON.stringify({ 
                     notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate 
                 }));
             }, [notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate]);
 
-            // Calculations
             const counterTotal = () => {
                 let sum = 0; denoms.forEach(d => sum += (parseInt(cleanNumber(notes[d])) || 0) * d);
                 return sum + (parseInt(cleanNumber(extraAmount)) || 0);
@@ -324,9 +301,8 @@
                     csvContent += `ਤਰੀਕ ਤੋਂ: ${startDate}, ਤਰੀਕ ਤੱਕ: ${endDate}\n`;
                     if(avgResult) {
                         csvContent += `ਕੁੱਲ ਦਿਨ: ${avgResult.days}\n\n`;
-                        if (avgMethod === 'direct') {
-                             csvContent += `ਸਿੱਧੀ ਰਕਮ,${avgDirectAmount}\n`;
-                        } else {
+                        if (avgMethod === 'direct') { csvContent += `ਸਿੱਧੀ ਰਕਮ,${avgDirectAmount}\n`; } 
+                        else {
                             csvContent += "ਨੋਟ (Note),ਕੁੱਲ ਰਕਮ (Total Value),ਰੋਜ਼ਾਨਾ ਔਸਤ (Daily Avg)\n";
                             denoms.forEach(d => {
                                 const val = parseInt(cleanNumber(avgValues[d])) || 0;
@@ -336,116 +312,108 @@
                         }
                         csvContent += `,,${avgResult.grandTotal}\n`;
                         csvContent += `ਰੋਜ਼ਾਨਾ ਔਸਤ (Grand Daily Avg),,${avgResult.dailyGrandAvg.toFixed(2)}\n`;
-                    } else {
-                        csvContent += "ਹਿਸਾਬ ਲਈ ਤਰੀਕਾਂ ਭਰੋ\n";
                     }
                 }
-
                 const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
                 const link = document.createElement("a");
                 const url = URL.createObjectURL(blob);
                 link.setAttribute("href", url);
                 link.setAttribute("download", filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
             };
 
-            const TabBtn = ({ id, label, colorClass }) => (
+            const TabBtn = ({ id, label, colorClass, activeColor }) => (
                 <button 
                     onClick={() => setActiveTab(id)} 
-                    className={`flex-1 py-3 px-1 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm border border-black/10 ${activeTab === id ? `${colorClass} text-white shadow-lg scale-105 border-white` : 'bg-white/90 text-gray-500 hover:bg-white'}`}
+                    className={`flex-1 py-2 text-[11px] font-bold rounded shadow-sm border ${activeTab === id ? `${activeColor} text-white border-transparent` : 'bg-white text-gray-500 border-gray-200'}`}
                 >
                     {label}
                 </button>
             );
 
-            const FooterCredit = () => (
-                <div className="footer-credit mt-auto">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
-            );
-
             return (
                 <>
-                    <div className="header-bg shadow-lg z-20 sticky top-0 no-print pb-2">
-                        <div className="p-2 flex justify-between items-start">
-                            <div className="text-white pt-1 pl-2">
-                                <h2 className="text-lg font-bold leading-tight drop-shadow-md">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ (ਖ਼ਜ਼ਾਨਾ)</h2>
-                                <div className="text-white/90 text-xs mt-1 font-medium">{punjabiDate}</div>
+                    <InstallPrompt />
+                    
+                    <div className="header-bg shadow-sm z-20 sticky top-0 no-print pb-1">
+                        <div className="flex justify-between items-center px-2 py-1">
+                            <div className="text-white">
+                                <h2 className="text-base font-bold leading-tight drop-shadow-sm">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ (ਖ਼ਜ਼ਾਨਾ)</h2>
+                                <div className="text-white/90 text-[10px] mt-0.5 font-medium">{punjabiDate}</div>
                             </div>
-                            <button onClick={handleReset} className="bg-red-600 text-white p-2 rounded-lg shadow border border-white/20 active:scale-95">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            <button onClick={handleReset} className="bg-red-600 text-white p-1.5 rounded-md shadow border border-white/20 active:scale-95">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                             </button>
                         </div>
-                        <div className="px-3 mt-1">
-                            <div className="flex gap-2 p-1.5 rounded-2xl bg-white/10">
-                                <TabBtn id="counter" label="ਕੈਸ਼ ਕਾਊਂਟਰ" colorClass="bg-blue-600" />
-                                <TabBtn id="bundles" label="ਬੰਡਲ ਗਿਣਤੀ" colorClass="bg-yellow-500" />
-                                <TabBtn id="average" label="ਔਸਤ (Average)" colorClass="bg-[#8B4513]" />
+                        <div className="px-2 mb-1">
+                            <div className="flex gap-1">
+                                <TabBtn id="counter" label="ਕੈਸ਼ ਕਾਊਂਟਰ" activeColor="bg-blue-600" />
+                                <TabBtn id="bundles" label="ਬੰਡਲ ਗਿਣਤੀ" activeColor="bg-yellow-600" />
+                                <TabBtn id="average" label="ਔਸਤ (Average)" activeColor="bg-[#8B4513]" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="print-only text-center p-4 border-b-2 border-black mb-4">
-                        <h1 className="text-2xl font-bold">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ</h1>
-                        <h2 className="text-xl">ਸ੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ, ਸ੍ਰੀ ਅੰਮ੍ਰਿਤਸਰ</h2>
-                        <h3 className="text-lg font-bold mt-2 underline uppercase">
+                    <div className="print-only text-center p-4 border-b border-black mb-2">
+                        <h1 className="text-xl font-bold">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ</h1>
+                        <h2 className="text-lg">ਸ੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ (ਖ਼ਜ਼ਾਨਾ)</h2>
+                        <h3 className="text-base font-bold mt-1 underline uppercase">
                             {activeTab === 'counter' ? 'ਰੋਜ਼ਾਨਾ ਖ਼ਜ਼ਾਨਾ' : activeTab === 'bundles' ? 'ਬੰਡਲ ਗਿਣਤੀ' : 'ਔਸਤ ਰਿਪੋਰਟ'}
                         </h3>
-                        <p>ਤਰੀਕ: {punjabiDate}</p>
+                        <p className="text-sm">ਤਰੀਕ: {punjabiDate}</p>
                     </div>
 
-                    <div className="flex-1 p-3 max-w-4xl mx-auto w-full content-container">
+                    <div className="flex-1 p-2 max-w-4xl mx-auto w-full content-container">
                         
                         {activeTab === 'counter' && (
-                            <div className="space-y-3 animate-in fade-in">
-                                <div className="bg-blue-600 text-white rounded-xl p-4 shadow-md flex justify-between items-center print:bg-white print:text-black print:border-2 print:border-black">
-                                    <div><p className="text-[10px] font-bold uppercase opacity-80">ਕੁੱਲ ਮਾਇਆ</p><div className="text-3xl font-extrabold mt-1">₹ {formatIndianNumber(counterTotal())}</div></div>
-                                    <div className="text-right w-1/2"><p className="text-xs italic">{numberToEnglish(counterTotal())}</p></div>
+                            <div className="space-y-2 animate-in fade-in">
+                                <div className="bg-blue-600 text-white rounded-lg p-2 shadow flex justify-between items-center print:bg-white print:text-black print:border print:border-black">
+                                    <div><p className="text-[9px] font-bold uppercase opacity-80">ਕੁੱਲ ਮਾਇਆ</p><div className="text-2xl font-extrabold leading-none">₹ {formatIndianNumber(counterTotal())}</div></div>
+                                    <div className="text-right w-3/5"><p className="text-[10px] leading-tight opacity-90">{numberToEnglish(counterTotal())}</p></div>
                                 </div>
-                                <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-3 flex gap-2 items-center print:border-black">
+                                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-2 flex gap-2 items-center print:border-black">
                                     <div className="flex-1">
-                                        <label className="text-blue-800 font-bold text-xs block mb-1 print:text-black">ਹੋਰ ਰਕਮ / ਚਿੱਲਰ</label>
-                                        <input type="text" inputMode="numeric" value={formatIndianNumber(extraAmount)} onChange={e => setExtraAmount(cleanNumber(e.target.value))} className="input-box w-full p-2 rounded text-lg font-bold text-blue-900 print:text-black print:pl-0" placeholder="0"/>
+                                        <label className="text-blue-800 font-bold text-[10px] block mb-0.5 print:text-black">ਹੋਰ ਰਕਮ / ਚਿੱਲਰ</label>
+                                        <input type="text" inputMode="numeric" value={formatIndianNumber(extraAmount)} onChange={e => setExtraAmount(cleanNumber(e.target.value))} className="input-box w-full py-1 px-2 rounded text-base font-bold text-blue-900 print:text-black print:pl-0" placeholder="0"/>
                                     </div>
-                                    <button onClick={() => setShowCalc(true)} className="bg-blue-600 text-white p-3 rounded-lg shadow no-print mt-4"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="8" y1="18" x2="8" y2="18"/></svg></button>
+                                    <button onClick={() => setShowCalc(true)} className="bg-blue-600 text-white p-2 rounded-lg shadow no-print mt-3"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="8" y1="18" x2="8" y2="18"/></svg></button>
                                 </div>
-                                <div className="bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden print:border-black">
-                                    <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-gray-400 p-2 border-b bg-gray-50 print:text-black">
+                                <div className="bg-white rounded-lg shadow-sm border border-blue-100 overflow-hidden print:border-black">
+                                    <div className="grid grid-cols-12 gap-1 text-[10px] font-bold text-gray-500 p-1.5 border-b bg-gray-50 print:text-black">
                                         <div className="col-span-3 text-right">ਨੋਟ</div><div className="col-span-4 text-center">ਗਿਣਤੀ</div><div className="col-span-5 text-right">ਕੁੱਲ</div>
                                     </div>
                                     {denoms.map(d => (
-                                        <div key={d} className="grid grid-cols-12 gap-2 items-center border-b border-gray-50 p-2 print:border-gray-200">
-                                            <div className="col-span-3 text-right font-bold text-gray-700 text-lg print:text-black">₹{d}</div>
-                                            <div className="col-span-4"><input type="number" value={notes[d] || ""} onChange={e => setNotes({...notes, [d]: e.target.value})} placeholder="0" className="input-box w-full p-1.5 rounded text-center text-lg font-bold text-blue-900 print:text-black"/></div>
-                                            <div className="col-span-5 text-right font-medium text-gray-600 print:text-black">{formatIndianNumber((parseInt(notes[d])||0)*d)}</div>
+                                        <div key={d} className="grid grid-cols-12 gap-1 items-center border-b border-gray-50 p-1 print:border-gray-200">
+                                            <div className="col-span-3 text-right font-bold text-gray-700 text-base print:text-black">₹{d}</div>
+                                            <div className="col-span-4"><input type="number" value={notes[d] || ""} onChange={e => setNotes({...notes, [d]: e.target.value})} placeholder="0" className="input-box w-full py-1 rounded text-center text-base font-bold text-blue-900 print:text-black"/></div>
+                                            <div className="col-span-5 text-right font-bold text-gray-700 text-sm print:text-black">{formatIndianNumber((parseInt(notes[d])||0)*d)}</div>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="bg-orange-50 rounded-xl border border-orange-200 p-3 no-print flex gap-2 items-center">
-                                    <input type="number" value={gurmukhiNumInput} onChange={e => setGurmukhiNumInput(e.target.value)} placeholder="123" className="w-1/3 input-box p-2 rounded text-center"/>
+                                <div className="bg-orange-50 rounded-lg border border-orange-200 p-2 no-print flex gap-2 items-center">
+                                    <input type="number" value={gurmukhiNumInput} onChange={e => setGurmukhiNumInput(e.target.value)} placeholder="123" className="w-20 input-box p-1 rounded text-center text-sm"/>
                                     <span className="text-orange-400">➔</span>
-                                    <div className="flex-1 font-bold text-xl text-blue-900">{gurmukhiNumInput ? toGurmukhiNumerals(gurmukhiNumInput) : "-"}</div>
+                                    <div className="flex-1 font-bold text-lg text-blue-900">{gurmukhiNumInput ? toGurmukhiNumerals(gurmukhiNumInput) : "-"}</div>
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'bundles' && (
-                            <div className="space-y-3 animate-in fade-in">
-                                <div className="bg-yellow-500 text-black rounded-xl p-4 shadow-md flex justify-between items-center print:bg-white print:text-black print:border-2 print:border-black">
-                                    <div><p className="text-[10px] font-bold uppercase opacity-70">ਬੰਡਲਾਂ ਦਾ ਕੁੱਲ ਜੋੜ</p><div className="text-3xl font-extrabold mt-1">₹ {formatIndianNumber(bundleTotal())}</div></div>
-                                    <div className="text-right w-1/2"><p className="text-xs italic">{numberToEnglish(bundleTotal())}</p></div>
+                            <div className="space-y-2 animate-in fade-in">
+                                <div className="bg-yellow-600 text-white rounded-lg p-2 shadow flex justify-between items-center print:bg-white print:text-black print:border print:border-black">
+                                    <div><p className="text-[9px] font-bold uppercase opacity-80">ਬੰਡਲ ਜੋੜ</p><div className="text-2xl font-extrabold leading-none">₹ {formatIndianNumber(bundleTotal())}</div></div>
+                                    <div className="text-right w-3/5"><p className="text-[10px] leading-tight opacity-90">{numberToEnglish(bundleTotal())}</p></div>
                                 </div>
-                                <div className="bg-white rounded-xl shadow-sm border border-yellow-200 overflow-hidden print:border-black">
-                                    <div className="p-2 overflow-x-auto">
-                                        <table className="w-full text-sm min-w-[350px]">
+                                <div className="bg-white rounded-lg shadow-sm border border-yellow-200 overflow-hidden print:border-black">
+                                    <div className="p-0 overflow-x-auto">
+                                        <table className="w-full text-xs">
                                             <thead className="bg-yellow-50 text-yellow-900 border-b print:bg-gray-100">
                                                 <tr>
-                                                    <th className="p-2 text-left w-12">ਨੋਟ</th>
-                                                    <th className="p-2 text-center border-l border-yellow-200 w-1/4">ਛੋਟਾ ਬੰਡਲ<br/><span className="text-[9px] font-normal">(ਸਿਰਫ ਰਕਮ)</span></th>
-                                                    <th className="p-2 text-center border-l border-yellow-200 w-1/4">ਵੱਡਾ ਬੰਡਲ<br/><span className="text-[9px] font-normal">(ਰਕਮ)</span></th>
-                                                    <th className="p-2 text-center border-l border-yellow-200 w-16">ਗਿਣਤੀ<br/><span className="text-[9px] font-normal">(ਵੱਡੇ)</span></th>
-                                                    <th className="p-2 text-right">ਕੁੱਲ</th>
+                                                    <th className="p-1.5 text-left w-10">ਨੋਟ</th>
+                                                    <th className="p-1.5 text-center border-l border-yellow-200">ਛੋਟਾ (ਮੁੱਲ)</th>
+                                                    <th className="p-1.5 text-center border-l border-yellow-200">ਵੱਡਾ (ਮੁੱਲ)</th>
+                                                    <th className="p-1.5 text-center border-l border-yellow-200 w-12">ਗਿਣਤੀ</th>
+                                                    <th className="p-1.5 text-right w-24">ਕੁੱਲ</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -455,11 +423,11 @@
                                                 const total = (bv*bc);
                                                 return (
                                                     <tr key={d} className="border-b last:border-0">
-                                                        <td className="p-2 font-bold text-gray-700">₹{d}</td>
-                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.smallVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], smallVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/></td>
-                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.bigVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigVal: cleanNumber(e.target.value)}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded placeholder-gray-300"/></td>
-                                                        <td className="p-1 border-l border-yellow-100"><input type="number" placeholder="0" value={bundles[d]?.bigCount||""} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigCount: e.target.value}})} className="w-full p-1.5 input-box text-center text-xs font-bold rounded bg-yellow-50 placeholder-gray-300"/></td>
-                                                        <td className="p-2 text-right font-bold text-gray-600 text-xs">{formatIndianNumber(total)}</td>
+                                                        <td className="p-1.5 font-bold text-gray-700">₹{d}</td>
+                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.smallVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], smallVal: cleanNumber(e.target.value)}})} className="w-full py-1 input-box text-center font-bold text-[11px] placeholder-gray-300"/></td>
+                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.bigVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigVal: cleanNumber(e.target.value)}})} className="w-full py-1 input-box text-center font-bold text-[11px] placeholder-gray-300"/></td>
+                                                        <td className="p-1 border-l border-yellow-100"><input type="number" placeholder="0" value={bundles[d]?.bigCount||""} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigCount: e.target.value}})} className="w-full py-1 input-box text-center font-bold bg-yellow-50 placeholder-gray-300"/></td>
+                                                        <td className="p-1.5 text-right font-bold text-gray-600 text-[11px]">{formatIndianNumber(total)}</td>
                                                     </tr>
                                                 )
                                             })}
@@ -471,28 +439,24 @@
                         )}
 
                         {activeTab === 'average' && (
-                            <div className="space-y-3 animate-in fade-in">
-                                <div className="bg-white p-3 rounded-xl shadow-sm border border-black/10 print:border-black">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div><label className="text-[10px] font-bold uppercase text-gray-500">ਮਿਤੀ ਤੋਂ</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full mt-1 p-1 bg-gray-50 rounded border"/></div>
-                                        <div><label className="text-[10px] font-bold uppercase text-gray-500">ਮਿਤੀ ਤੱਕ</label><input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full mt-1 p-1 bg-gray-50 rounded border"/></div>
+                            <div className="space-y-2 animate-in fade-in">
+                                <div className="bg-white p-2 rounded-lg shadow-sm border border-stone-200 print:border-black">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><label className="text-[9px] font-bold uppercase text-gray-500">ਮਿਤੀ ਤੋਂ</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full mt-0.5 p-1 bg-stone-50 rounded border text-xs"/></div>
+                                        <div><label className="text-[9px] font-bold uppercase text-gray-500">ਮਿਤੀ ਤੱਕ</label><input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full mt-0.5 p-1 bg-stone-50 rounded border text-xs"/></div>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 bg-gray-100 p-1 rounded-lg no-print">
-                                    <button onClick={() => setAvgMethod('detailed')} className={`flex-1 py-1 text-xs font-bold rounded ${avgMethod === 'detailed' ? 'bg-white shadow text-[#8B4513]' : 'text-gray-400'}`}>ਨੋਟਾਂ ਦਾ ਵੇਰਵਾ</button>
-                                    <button onClick={() => setAvgMethod('direct')} className={`flex-1 py-1 text-xs font-bold rounded ${avgMethod === 'direct' ? 'bg-white shadow text-[#8B4513]' : 'text-gray-400'}`}>ਸਿੱਧੀ ਰਕਮ</button>
+                                <div className="flex gap-1 bg-gray-100 p-1 rounded-lg no-print">
+                                    <button onClick={() => setAvgMethod('detailed')} className={`flex-1 py-1 text-[10px] font-bold rounded ${avgMethod === 'detailed' ? 'bg-white shadow text-[#8B4513]' : 'text-gray-400'}`}>ਵੇਰਵਾ</button>
+                                    <button onClick={() => setAvgMethod('direct')} className={`flex-1 py-1 text-[10px] font-bold rounded ${avgMethod === 'direct' ? 'bg-white shadow text-[#8B4513]' : 'text-gray-400'}`}>ਸਿੱਧਾ</button>
                                 </div>
 
                                 {avgMethod === 'detailed' ? (
-                                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden print:border-black">
-                                        <table className="w-full text-sm">
+                                    <div className="bg-white rounded-lg shadow-sm border border-stone-200 overflow-hidden print:border-black">
+                                        <table className="w-full text-xs">
                                             <thead className="bg-stone-50 text-stone-900 border-b print:bg-gray-100">
-                                                <tr>
-                                                    <th className="p-2 text-right w-16">ਨੋਟ</th>
-                                                    <th className="p-2 text-center w-1/2">ਕੁੱਲ ਰਕਮ ਭਰੋ<br/><span className="text-[9px] font-normal text-red-500 print:hidden">(ਨੋਟਾਂ ਦੀ ਗਿਣਤੀ ਨਹੀਂ)</span></th>
-                                                    <th className="p-2 text-right bg-stone-100 print:bg-transparent">ਰੋਜ਼ਾਨਾ ਔਸਤ</th>
-                                                </tr>
+                                                <tr><th className="p-1.5 text-right w-12">ਨੋਟ</th><th className="p-1.5 text-center">ਕੁੱਲ ਰਕਮ ਭਰੋ<span className="text-[8px] font-normal text-red-500 block print:hidden">(ਨੋਟਾਂ ਦੀ ਗਿਣਤੀ ਨਹੀਂ)</span></th><th className="p-1.5 text-right bg-stone-100 print:bg-transparent">ਔਸਤ</th></tr>
                                             </thead>
                                             <tbody>
                                                 {denoms.map(d => {
@@ -500,18 +464,9 @@
                                                     const avg = avgResult ? val/avgResult.days : 0;
                                                     return (
                                                         <tr key={d} className="border-b last:border-0 print:border-gray-200">
-                                                            <td className="p-2 text-right font-bold">₹{d}</td>
-                                                            <td className="p-1">
-                                                                <input 
-                                                                    type="text" 
-                                                                    inputMode="numeric" 
-                                                                    value={formatIndianNumber(avgValues[d])} 
-                                                                    onChange={e => setAvgValues({...avgValues, [d]: cleanNumber(e.target.value)})} 
-                                                                    placeholder="0" 
-                                                                    className="w-full p-1.5 input-box text-center font-bold avg-amount-input print:text-right print:pr-4"
-                                                                />
-                                                            </td>
-                                                            <td className="p-2 text-right font-bold text-stone-900 bg-stone-50 print:bg-transparent">{formatIndianNumber(avg.toFixed(2))}</td>
+                                                            <td className="p-1.5 text-right font-bold">₹{d}</td>
+                                                            <td className="p-1"><input type="text" inputMode="numeric" value={formatIndianNumber(avgValues[d])} onChange={e => setAvgValues({...avgValues, [d]: cleanNumber(e.target.value)})} placeholder="0" className="w-full py-1 input-box text-center font-bold avg-amount-input print:text-right print:pr-4"/></td>
+                                                            <td className="p-1.5 text-right font-bold text-stone-900 bg-stone-50 print:bg-transparent">{formatIndianNumber(avg.toFixed(2))}</td>
                                                         </tr>
                                                     )
                                                 })}
@@ -519,51 +474,41 @@
                                         </table>
                                     </div>
                                 ) : (
-                                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 print:border-black">
-                                        <label className="text-sm font-bold text-[#8B4513]">ਸਾਰੇ ਦਿਨਾਂ ਦੀ ਕੁੱਲ ਰਕਮ ਭਰੋ</label>
-                                        <input type="text" inputMode="numeric" value={formatIndianNumber(avgDirectAmount)} onChange={e => setAvgDirectAmount(cleanNumber(e.target.value))} className="w-full p-3 input-box text-xl font-bold mt-2 rounded" placeholder="₹ 0"/>
+                                    <div className="bg-white rounded-lg shadow-sm border border-stone-200 p-3 print:border-black">
+                                        <label className="text-xs font-bold text-[#8B4513]">ਸਾਰੇ ਦਿਨਾਂ ਦੀ ਕੁੱਲ ਰਕਮ</label>
+                                        <input type="text" inputMode="numeric" value={formatIndianNumber(avgDirectAmount)} onChange={e => setAvgDirectAmount(cleanNumber(e.target.value))} className="w-full p-2 input-box text-lg font-bold mt-1 rounded" placeholder="₹ 0"/>
                                     </div>
                                 )}
 
                                 {avgResult && avgResult.days > 0 ? (
-                                    <div className="bg-stone-100 border border-stone-300 p-4 rounded-xl text-center print:border-black print:bg-transparent">
-                                        <div className="grid grid-cols-2 gap-4 text-sm mb-2 border-b border-stone-200 pb-2">
-                                            <div>ਕੁੱਲ ਦਿਨ: <b>{avgResult.days}</b></div>
-                                            <div>ਕੁੱਲ ਜਮ੍ਹਾਂ ਰਕਮ: <b>₹ {formatIndianNumber(avgResult.grandTotal)}</b></div>
+                                    <div className="bg-stone-50 border border-stone-200 p-2 rounded-lg text-center print:border-black print:bg-transparent">
+                                        <div className="flex justify-center gap-4 text-xs mb-1 border-b border-stone-200 pb-1">
+                                            <span>ਦਿਨ: <b>{avgResult.days}</b></span><span>ਕੁੱਲ: <b>₹{formatIndianNumber(avgResult.grandTotal)}</b></span>
                                         </div>
-                                        <p className="text-[#8B4513] text-sm font-bold uppercase">ਰੋਜ਼ਾਨਾ ਕੁੱਲ ਔਸਤ</p>
-                                        <p className="text-3xl font-extrabold text-[#8B4513] mt-1">₹ {formatIndianNumber(avgResult.dailyGrandAvg.toFixed(2))}</p>
+                                        <p className="text-[#8B4513] text-[10px] font-bold uppercase">ਰੋਜ਼ਾਨਾ ਔਸਤ</p>
+                                        <p className="text-xl font-extrabold text-[#8B4513]">₹ {formatIndianNumber(avgResult.dailyGrandAvg.toFixed(2))}</p>
                                     </div>
                                 ) : (
-                                    <div className="text-center text-gray-400 text-xs py-2">ਤਰੀਕਾਂ ਭਰੋ ਅਤੇ ਰਕਮ ਲਿਖੋ...</div>
+                                    <div className="text-center text-gray-400 text-[10px] py-1">ਤਰੀਕਾਂ ਭਰੋ...</div>
                                 )}
                             </div>
                         )}
 
-                        <div className="flex gap-2 mt-4 no-print">
-                            <button onClick={printPDF} className="flex-1 bg-[#333] text-white font-bold py-4 rounded-xl shadow-lg flex justify-center items-center gap-2 active:scale-95 transition-transform">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-                                PDF
-                            </button>
-                            <button onClick={downloadExcel} className="flex-1 bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg flex justify-center items-center gap-2 active:scale-95 transition-transform">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                                Excel
-                            </button>
+                        <div className="flex gap-2 mt-3 no-print">
+                            <button onClick={printPDF} className="flex-1 bg-gray-800 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95">PDF</button>
+                            <button onClick={downloadExcel} className="flex-1 bg-green-700 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95">Excel</button>
                         </div>
                         
                         <div className="h-4 no-print"></div>
-                        <div className="no-print"><FooterCredit /></div>
+                        <div className="no-print footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
                     </div>
                     
-                    <InstallPrompt />
-                    <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => setExtraAmount(val.toString())} />
-                    
                     <div className="print-footer-container print-only">
-                        <div className="flex justify-between px-10 mb-4 pt-4">
-                            <div className="text-center"><div className="h-10"></div><div className="border-t-2 border-black w-48 mx-auto"></div><p className="font-bold mt-1">ਸੁਪਰਵਾਈਜ਼ਰ/ਇੰਚਾਰਜ</p></div>
-                            <div className="text-center"><div className="h-10"></div><div className="border-t-2 border-black w-48 mx-auto"></div><p className="font-bold mt-1">ਮੈਨੇਜਰ</p></div>
+                        <div className="flex justify-between px-10 mb-2 pt-2">
+                            <div className="text-center"><div className="h-8"></div><div className="border-t border-black w-32 mx-auto"></div><p className="font-bold text-xs mt-0.5">ਸੁਪਰਵਾਈਜ਼ਰ/ਇੰਚਾਰਜ</p></div>
+                            <div className="text-center"><div className="h-8"></div><div className="border-t border-black w-32 mx-auto"></div><p className="font-bold text-xs mt-0.5">ਮੈਨੇਜਰ</p></div>
                         </div>
-                        <FooterCredit />
+                        <div className="footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
                     </div>
                 </>
             );
@@ -571,7 +516,6 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
-        
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(() => console.log('SW Registered')); }
     </script>
 </body>
