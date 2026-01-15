@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sgpc-cash-v21';
+const CACHE_NAME = 'sgpc-cash-v23';
 const urlsToCache = [
   './',
   './index.html',
