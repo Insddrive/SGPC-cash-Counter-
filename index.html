@@ -270,6 +270,9 @@
             const [endDate, setEndDate] = useState("");
             const [showCalc, setShowCalc] = useState(false);
             const [punjabiDate, setPunjabiDate] = useState("");
+            
+            // Temporary state for amount inputs to prevent jumping/clearing while typing
+            const [amountInputValues, setAmountInputValues] = useState({});
 
             useEffect(() => {
                 setPunjabiDate(getDetailedDate());
@@ -290,11 +293,34 @@
             }, [notes, extraAmount, gurmukhiNumInput, bundleCounts, avgValues, avgDirectAmount, avgMethod, startDate, endDate]);
 
             const handleNoteCountChange = (d, val) => { setNotes({...notes, [d]: val}); };
+            
+            // Improved handler for Amount changes
+            const handleNoteAmountFocus = (d, currentTotal) => {
+                setAmountInputValues(prev => ({
+                    ...prev,
+                    [d]: currentTotal === 0 ? "" : currentTotal.toString()
+                }));
+            };
+
             const handleNoteAmountChange = (d, val) => {
+                // 1. Keep track of what user is typing so input doesn't reset
+                setAmountInputValues(prev => ({ ...prev, [d]: val }));
+
+                // 2. Calculate notes in background
                 const amt = parseInt(cleanNumber(val)) || 0;
                 const count = Math.floor(amt / d);
-                setNotes({...notes, [d]: count > 0 ? count.toString() : ""});
+                setNotes(prev => ({...prev, [d]: count > 0 ? count.toString() : ""}));
             };
+
+            const handleNoteAmountBlur = (d) => {
+                // Clear temp state so input reverts to formatted calculated value
+                setAmountInputValues(prev => {
+                    const newState = {...prev};
+                    delete newState[d];
+                    return newState;
+                });
+            };
+
             const handleBundleChange = (denom, value) => {
                 setBundleCounts(prev => ({...prev, [denom]: value}));
                 const count = parseInt(cleanNumber(value)) || 0;
@@ -340,7 +366,7 @@
             }, [bundleCounts]);
 
             const handleReset = () => {
-                if (activeTab === 'counter') { if(confirm("ਕੀ ਤੁਸੀਂ 'ਕੈਸ਼ ਕਾਊਂਟਰ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setNotes({}); setExtraAmount(""); setGurmukhiNumInput(""); } }
+                if (activeTab === 'counter') { if(confirm("ਕੀ ਤੁਸੀਂ 'ਕੈਸ਼ ਕਾਊਂਟਰ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setNotes({}); setExtraAmount(""); setGurmukhiNumInput(""); setAmountInputValues({}); } }
                 else if (activeTab === 'bundles') { if(confirm("ਕੀ ਤੁਸੀਂ 'ਬੰਡਲ ਗਿਣਤੀ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) setBundleCounts({}); }
                 else if (activeTab === 'average') { if(confirm("ਕੀ ਤੁਸੀਂ 'ਔਸਤ' ਡਾਟਾ ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setAvgValues({}); setAvgDirectAmount(""); setStartDate(""); setEndDate(""); } }
             };
@@ -426,13 +452,26 @@
                                         <div className="col-span-3 text-center">ਨੋਟ</div><div className="col-span-4 text-center">ਗਿਣਤੀ</div><div className="col-span-5 text-center">ਕੁੱਲ (₹)</div>
                                     </div>
                                     {denoms.map(d => {
-                                        const noteVal = parseInt(notes[d]) || 0; const totalRowVal = noteVal * d;
+                                        const noteVal = parseInt(notes[d]) || 0; 
+                                        const totalRowVal = noteVal * d;
+                                        // Determine what to show in amount box: editing value OR calculated total
+                                        const displayAmount = amountInputValues.hasOwnProperty(d) ? amountInputValues[d] : (totalRowVal > 0 ? formatIndianNumber(totalRowVal) : "");
+                                        
                                         return (
                                             <div key={d} className="grid grid-cols-12 gap-1 items-center border-b border-gray-50 p-1 print:border-gray-200">
                                                 <div className="col-span-3 text-center font-bold text-gray-700 text-base print:text-black">₹{d}</div>
                                                 <div className="col-span-4"><input type="number" value={notes[d] || ""} onChange={e => handleNoteCountChange(d, e.target.value)} placeholder="0" className="input-box w-full py-1 rounded text-center text-base font-bold text-blue-900 print:text-black"/></div>
                                                 <div className="col-span-5">
-                                                    <input type="text" inputMode="numeric" value={totalRowVal > 0 ? formatIndianNumber(totalRowVal) : ""} onChange={e => handleNoteAmountChange(d, e.target.value)} placeholder="0" className="input-box w-full py-1 rounded text-center text-sm font-bold text-gray-800 bg-gray-50 focus:bg-white print:bg-transparent print:text-black border-transparent focus:border-blue-300"/>
+                                                    <input 
+                                                        type="text" 
+                                                        inputMode="numeric" 
+                                                        value={displayAmount} 
+                                                        onChange={e => handleNoteAmountChange(d, e.target.value)}
+                                                        onFocus={() => handleNoteAmountFocus(d, totalRowVal)}
+                                                        onBlur={() => handleNoteAmountBlur(d)}
+                                                        placeholder="0" 
+                                                        className="input-box w-full py-1 rounded text-center text-sm font-bold text-gray-800 bg-gray-50 focus:bg-white print:bg-transparent print:text-black border-transparent focus:border-blue-300"
+                                                    />
                                                 </div>
                                             </div>
                                         )
@@ -570,9 +609,15 @@
                             <button onClick={downloadExcel} className="flex-1 bg-green-700 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95">Excel</button>
                         </div>
                         <div className="h-4 no-print"></div>
-                        <div className="no-print footer-credit flex items-center justify-center gap-2">
-                            <img src="developer.jpg" className="w-8 h-8 rounded-full border border-green-400 shadow-sm object-cover bg-white" alt="" onError={(e) => e.target.style.display = 'none'} />
-                            <span>ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</span>
+                        
+                        {/* New Footer Layout with Photo above Green Bar */}
+                        <div className="mt-auto no-print w-full">
+                             <div className="flex justify-center mb-1">
+                                 <img src="developer.jpg" className="w-10 h-10 rounded-full border-2 border-green-500 shadow-sm object-cover bg-white" alt="" onError={(e) => e.target.style.display = 'none'} />
+                             </div>
+                             <div className="footer-credit !mt-0">
+                                 <span>ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ (ਮੁਲਾਜ਼ਮ SGPC ਸ਼੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ, ਅੰਮ੍ਰਿਤਸਰ) | ਫੋਨ ਨੰਬਰ 94644-91806</span>
+                             </div>
                         </div>
                     </div>
                     <div className="print-footer-container print-only">
@@ -580,7 +625,7 @@
                             <div className="text-center"><div className="h-8"></div><div className="border-t border-black w-32 mx-auto"></div><p className="font-bold text-xs mt-0.5">ਸੁਪਰਵਾਈਜ਼ਰ/ਇੰਚਾਰਜ</p></div>
                             <div className="text-center"><div className="h-8"></div><div className="border-t border-black w-32 mx-auto"></div><p className="font-bold text-xs mt-0.5">ਮੈਨੇਜਰ</p></div>
                         </div>
-                        <div className="footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
+                        <div className="footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ (ਮੁਲਾਜ਼ਮ SGPC ਸ਼੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ, ਅੰਮ੍ਰਿਤਸਰ) | ਫੋਨ ਨੰਬਰ 94644-91806</div>
                     </div>
                     {showCalc && <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => { setExtraAmount(cleanNumber(val)); }} />}
                 </>
