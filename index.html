@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kzana Counter</title>
     
-    <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF9933">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -847,87 +845,3 @@
     </script>
 </body>
 </html>
-
-
-                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {sortedAvgData.map((item, idx) => (
-                                                            <tr key={item.denom} className="border-b last:border-0 hover:bg-blue-50/50 dark:border-gray-800">
-                                                                <td className="p-1.5 text-center font-bold">₹{item.denom}</td>
-                                                                <td className="p-1.5 text-center font-semibold text-gray-700 text-xs">{formatIndianNumber(item.amount)}<span className="text-[8px] ml-0.5 text-gray-400">₹</span></td>
-                                                                <td className="p-1.5 text-center">
-                                                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${idx === 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}`}>
-                                                                        {item.percentage}%
-                                                                    </span>
-                                                                </td>
-                                                                <td className="p-1.5 text-center text-gray-500">{formatIndianNumber(item.count)}</td>
-                                                                <td className="p-1.5 text-center font-bold bg-gray-50 text-gray-800 text-[10px] dark:bg-gray-800 dark:text-white">
-                                                                    {avgResult && avgResult.days > 0 
-                                                                        ? <span>{formatIndianNumber(item.average.toFixed(2))}<span className="text-[8px] ml-0.5 text-gray-400">₹</span></span>
-                                                                        : <span className="text-red-400 font-normal">ਤਰੀਕ ਚੁਣੋ</span>
-                                                                    }
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <div className="bg-white rounded-lg shadow-sm border border-stone-200 p-3 print:border-black text-center">
-                                        <label className="text-xs font-bold text-[#8B4513]">ਸਾਰੇ ਦਿਨਾਂ ਦੀ ਕੁੱਲ ਰਕਮ</label>
-                                        <input type="text" inputMode="numeric" value={formatIndianNumber(avgDirectAmount)} onChange={e => setAvgDirectAmount(cleanNumber(e.target.value))} className="w-full p-2 input-box text-lg font-bold mt-1 rounded text-center" placeholder="₹ 0"/>
-                                    </div>
-                                )}
-
-                                {/* Summary Box - Logic: Total Always visible. Avg only if Dates present */}
-                                <div className="bg-stone-50 border border-stone-200 p-2 rounded-lg text-center print:border-black print:bg-transparent mt-2">
-                                    <div className="flex justify-center gap-4 text-xs mb-1 border-b border-stone-200 pb-1 dark:border-gray-800">
-                                         {avgResult && avgResult.days > 0 && <span>ਦਿਨ: <b>{avgResult.days}</b></span>}
-                                         <span className="text-sm">ਕੁੱਲ: <b>₹{formatIndianNumber(avgResult.grandTotal)}</b></span>
-                                    </div>
-                                    
-                                    {avgResult && avgResult.days > 0 ? (
-                                        <>
-                                            <p className="text-[#8B4513] text-[10px] font-bold uppercase dark:text-orange-300">ਰੋਜ਼ਾਨਾ ਔਸਤ</p>
-                                            <p className="text-xl font-extrabold text-[#8B4513] dark:text-orange-400">₹ {formatIndianNumber(avgResult.dailyGrandAvg.toFixed(2))}</p>
-                                        </>
-                                    ) : (
-                                        <div className="text-center text-gray-400 text-[10px] py-1">ਰੋਜ਼ਾਨਾ ਔਸਤ ਦੇਖਣ ਲਈ ਤਰੀਕਾਂ ਭਰੋ...</div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex gap-2 mt-3 no-print">
-                            <button onClick={printPDF} className="flex-1 bg-gray-800 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95 dark:bg-gray-700 dark:border dark:border-gray-600">PDF</button>
-                            <button onClick={downloadExcel} className="flex-1 bg-green-700 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95 dark:bg-green-900 dark:border dark:border-green-800">Excel</button>
-                        </div>
-                        
-                        <div className="h-4 no-print"></div>
-                        <div className="no-print footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
-                    </div>
-                    
-                    <div className="print-footer-container print-only">
-                        <div className="flex justify-between px-10 mb-2 pt-2">
-                            <div className="text-center"><div className="h-8"></div><div className="border-t border-black w-32 mx-auto"></div><p className="font-bold text-xs mt-0.5">ਸੁਪਰਵਾਈਜ਼ਰ/ਇੰਚਾਰਜ</p></div>
-                            <div className="text-center"><div className="h-8"></div><div className="border-t border-black w-32 mx-auto"></div><p className="font-bold text-xs mt-0.5">ਮੈਨੇਜਰ</p></div>
-                        </div>
-                        <div className="footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
-                    </div>
-                    
-                    {showCalc && <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => { setExtraAmount(cleanNumber(val)); }} />}
-                </>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(() => console.log('SW Registered')); }
-    </script>
-</body>
-</html>
-
-
