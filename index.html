@@ -849,52 +849,7 @@
 </html>
 
 
-                                           placeholder="0"
-                                                                                value={countVal}
-                                                                                onChange={e => {
-                                                                                    const c = parseInt(e.target.value) || 0;
-                                                                                    const newTotal = c * d;
-                                                                                    setAvgValues({...avgValues, [d]: newTotal > 0 ? newTotal.toString() : ""});
-                                                                                }}
-                                                                                className="w-full py-1 input-box text-center font-bold text-blue-900 border-stone-300 focus:border-blue-500 h-[26px] dark:text-white dark:border-gray-700"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        )
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        {/* Large Summary Summary (Screen Only) */}
-                                        <div className="bg-orange-600 text-white p-3 rounded-lg shadow-md mb-4 flex justify-between items-center print:hidden mt-4">
-                                            <div className="text-center">
-                                                <p className="text-xs font-bold opacity-80 uppercase">ਕੁੱਲ ਰਕਮ</p>
-                                                <p className="text-2xl font-extrabold">₹ {formatIndianNumber(avgResult.grandTotal)}</p>
-                                            </div>
-                                            <div className="text-center border-l border-orange-400 pl-4">
-                                                 <p className="text-xs font-bold opacity-80 uppercase">ਰੋਜ਼ਾਨਾ ਔਸਤ</p>
-                                                 <p className="text-xl font-bold">
-                                                    {avgResult && avgResult.days > 0 ? `₹ ${formatIndianNumber(avgResult.dailyGrandAvg.toFixed(2))}` : "---"}
-                                                 </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Sorted Analysis Chart - Main for Print/Export */}
-                                        {sortedAvgData.length > 0 && (
-                                            <div className="mt-4 bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden print:border-black animate-in slide-in-from-bottom-2">
-                                                <div className="bg-blue-50 p-2 border-b border-blue-200 text-center font-bold text-blue-900 text-xs dark:bg-blue-900/40 dark:text-blue-100 dark:border-gray-800">ਵਿਸ਼ਲੇਸ਼ਣ ਚਾਰਟ (Analysis Chart)</div>
-                                                <table className="w-full text-xs">
-                                                    <thead className="bg-gray-50 border-b dark:bg-gray-900 dark:border-gray-800">
-                                                        <tr>
-                                                            <th className="p-1.5 text-center">ਨੋਟ</th>
-                                                            <th className="p-1.5 text-center">ਰਕਮ</th>
-                                                            <th className="p-1.5 text-center">ਪ੍ਰਤੀਸ਼ਤ</th>
-                                                            <th className="p-1.5 text-center">ਨੋਟ ਗਿਣਤੀ</th>
-                                                            <th className="p-1.5 text-center bg-gray-100 dark:bg-gray-800">ਰੋਜ਼ਾਨਾ ਔਸਤ</th>
-                                                        </tr>
+                                        </tr>
                                                     </thead>
                                                     <tbody>
                                                         {sortedAvgData.map((item, idx) => (
