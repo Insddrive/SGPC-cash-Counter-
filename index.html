@@ -25,11 +25,44 @@
         body {
             font-family: 'Noto Sans Gurmukhi', sans-serif;
             background-color: #f8f5f2;
+            transition: background-color 0.3s ease, color 0.3s ease;
             -webkit-tap-highlight-color: transparent;
             display: flex; flex-direction: column; min-height: 100vh;
             overscroll-behavior-y: none;
         }
-        /* Compact Input Box - Centered & Middle Aligned */
+
+        /* Super AMOLED Dark Mode Styles */
+        body.dark-mode {
+            background-color: #000000;
+            color: #e5e5e5;
+        }
+        body.dark-mode .input-box {
+            background-color: #121212;
+            border-color: #333;
+            color: #fff;
+        }
+        body.dark-mode .input-box::placeholder { color: #555; }
+        body.dark-mode .bg-white { background-color: #000000; border-color: #333; }
+        body.dark-mode .text-gray-700 { color: #d1d5db; } /* Light gray text */
+        body.dark-mode .text-gray-500 { color: #9ca3af; }
+        body.dark-mode .text-gray-800 { color: #f3f4f6; }
+        body.dark-mode .text-blue-800 { color: #60a5fa; } /* Lighter blue */
+        body.dark-mode .text-blue-900 { color: #93c5fd; }
+        body.dark-mode .border-gray-50 { border-color: #262626; }
+        body.dark-mode .bg-gray-50 { background-color: #121212; }
+        body.dark-mode .bg-stone-50 { background-color: #1c1917; }
+        body.dark-mode .text-stone-900 { color: #e7e5e4; }
+        body.dark-mode .border-stone-200 { border-color: #44403c; }
+        body.dark-mode .bg-orange-50 { background-color: #1a1a1a; border-color: #333; }
+        body.dark-mode .bg-yellow-50 { background-color: #1a1600; }
+        body.dark-mode .border-blue-100 { border-color: #333; }
+        body.dark-mode .currency-input-group { background-color: #121212; border-color: #333; }
+        body.dark-mode .currency-input-group input { background-color: #121212; color: #fff; }
+        body.dark-mode .currency-input-group .addon { background-color: #262626; color: #aaa; border-left-color: #333; }
+        body.dark-mode .tab-btn-inactive { background-color: #121212; color: #888; border-color: #333; }
+        body.dark-mode .footer-credit { background-color: #121212; color: #888; border-top-color: #333; }
+
+        /* Compact Input Box */
         .input-box {
             background: white; border: 1px solid #e5e7eb;
             box-shadow: inset 0 1px 1px rgba(0,0,0,0.03); 
@@ -40,6 +73,42 @@
             padding-top: 0; padding-bottom: 0;
         }
         .input-box:focus { border-color: #1e3a8a; outline: none; box-shadow: 0 0 0 1px rgba(30, 58, 138, 0.1); }
+
+        /* Currency Input Group Styling */
+        .currency-input-group {
+            display: flex;
+            align-items: stretch;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            overflow: hidden;
+            background: white;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .currency-input-group input {
+            border: none;
+            flex: 1;
+            text-align: center;
+            padding: 4px;
+            font-weight: 700;
+            color: #1e3a8a;
+            min-width: 0; /* Prevents overflow */
+        }
+        .currency-input-group input:focus {
+            outline: none;
+            background-color: #f0f9ff;
+        }
+        .currency-input-group .addon {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            border-left: 1px solid #d1d5db;
+            padding: 0 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
         
         /* Table Cell Alignment Global Override */
         td, th {
@@ -69,17 +138,27 @@
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
         @media print {
-            body { background: white; -webkit-print-color-adjust: exact; }
+            body { background: white !important; color: black !important; -webkit-print-color-adjust: exact; }
+            body.dark-mode { background-color: white !important; color: black !important; }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             .print-footer-container { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding-bottom: 5px; }
             .content-container { margin-bottom: 100px; }
             
-            /* Print Specific Colors */
+            /* Hide the input table in Average tab when printing */
+            .avg-input-section { display: none !important; }
+            
+            /* Print Specific Colors - Force override dark mode */
+            .bg-white { background-color: white !important; border-color: #e5e7eb !important; }
+            .input-box { border: none !important; color: black !important; background: transparent !important; }
+            .text-gray-700 { color: #374151 !important; }
+            .text-gray-500 { color: #6b7280 !important; }
+            .text-blue-900 { color: #1e3a8a !important; }
+            
             .footer-credit { 
                 color: gray !important; 
                 background-color: transparent !important;
-                border-top: 1px solid #eee;
+                border-top: 1px solid #eee !important;
             }
             
             input { 
@@ -87,10 +166,12 @@
                 padding: 0 !important; text-align: center !important; font-weight: bold; color: black !important;
                 font-size: 12px;
             }
-            .avg-amount-input { text-align: center !important; }
+            .currency-input-group { border: none; box-shadow: none; background: transparent !important; }
+            .currency-input-group .addon { display: none; }
+            .currency-input-group input { text-align: right; color: black !important; }
             
             /* Remove background colors for print */
-            .bg-orange-100 { background-color: white !important; }
+            .bg-orange-100 { background-color: white !important; border: 1px solid #ddd !important; }
             .bg-blue-50 { background-color: white !important; }
         }
         .print-only { display: none; }
@@ -100,7 +181,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // --- Utils ---
         const formatIndianNumber = (num) => {
@@ -117,26 +198,6 @@
             return input.toString().split('').map(char => map[char] || char).join('');
         };
 
-        const numberToEnglish = (n) => {
-            if (n === 0) return "Zero Only";
-            const single = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-            const double = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-            const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-            const convert = (num) => {
-                if (num < 10) return single[num];
-                if (num < 20) return double[num - 10];
-                if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? " " + single[num % 10] : "");
-                if (num < 1000) return single[Math.floor(num / 100)] + " Hundred" + (num % 100 !== 0 ? " " + convert(num % 100) : "");
-                return "";
-            };
-            let str = ""; let num = Math.floor(n);
-            if (num >= 10000000) { str += convert(Math.floor(num / 10000000)) + " Crore "; num %= 10000000; }
-            if (num >= 100000) { str += convert(Math.floor(num / 100000)) + " Lakh "; num %= 100000; }
-            if (num >= 1000) { str += convert(Math.floor(num / 1000)) + " Thousand "; num %= 1000; }
-            if (num > 0) { str += convert(num); }
-            return str.trim() + " Only";
-        };
-
         const getDetailedDate = () => {
             const d = new Date();
             const day = d.getDate();
@@ -146,6 +207,40 @@
             const weekday = d.toLocaleDateString('pa-IN', { weekday: 'long' });
             return `${weekday}, ${day} ${month} (${monthNum}) ${year}`;
         };
+
+        // --- Indian Number System Display Component (Ultra Compact & Centered & Printable) ---
+        const IndianNumberDisplay = ({ value }) => {
+            const numStr = parseInt(value || 0).toString();
+            if (value === 0 || value === "0") return null;
+
+            const labels = [
+                'ਇਕਾਈ', 'ਦਹਾਈ', 'ਸੈਂਕੜਾ', 'ਹਜ਼ਾਰ', 'ਦਸ ਹਜ਼ਾਰ', 
+                'ਲੱਖ', 'ਦਸ ਲੱਖ', 'ਕਰੋੜ', 'ਦਸ ਕਰੋੜ', 
+                'ਅਰਬ', 'ਦਸ ਅਰਬ', 'ਖਰਬ', 'ਦਸ ਖਰਬ', 
+                'ਨੀਲ', 'ਦਸ ਨੀਲ'
+            ];
+            
+            const digits = numStr.split('').reverse();
+            
+            return (
+                <div className="flex flex-row-reverse justify-center gap-1.5 mt-8 mb-2 overflow-visible">
+                    {digits.map((digit, index) => (
+                        <div key={index} className="flex flex-col items-center w-3 relative">
+                            {/* Label: Positioned to touch top of digit and tilt up */}
+                            <div className="absolute bottom-[85%] left-1/2 w-max origin-bottom -rotate-45 transform -translate-x-1/2 pb-0.5">
+                                <span className="text-[7px] text-gray-500 font-bold whitespace-nowrap leading-none block dark:text-gray-400">
+                                    {labels[index] || ''}
+                                </span>
+                            </div>
+                            {/* Digit: Plain text, centered */}
+                            <div className="text-base font-bold text-gray-800 leading-none dark:text-gray-100">
+                                {digit}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )
+        }
 
         // --- Install Prompt ---
         const InstallPrompt = () => {
@@ -172,10 +267,10 @@
 
             if (!show) return null;
             return (
-                <div className="fixed top-2 right-2 bg-white rounded shadow-lg p-2 z-50 border border-gray-200 flex items-center gap-2 no-print animate-bounce">
-                    <span className="text-xs font-bold text-blue-900">{isIOS ? "Install: Share > Add to Home" : "Install App"}</span>
+                <div className="fixed top-2 right-2 bg-white rounded shadow-lg p-2 z-50 border border-gray-200 flex items-center gap-2 no-print animate-bounce dark:bg-gray-800 dark:border-gray-700">
+                    <span className="text-xs font-bold text-blue-900 dark:text-blue-300">{isIOS ? "Install: Share > Add to Home" : "Install App"}</span>
                     {!isIOS && <button onClick={handleInstall} className="bg-blue-600 text-white text-[10px] px-2 py-1 rounded">GET</button>}
-                    <button onClick={() => setShow(false)} className="text-gray-400 font-bold px-1">&times;</button>
+                    <button onClick={() => setShow(false)} className="text-gray-400 font-bold px-1 hover:text-red-500">&times;</button>
                 </div>
             );
         };
@@ -194,17 +289,17 @@
             };
             return (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end justify-center z-50 no-print">
-                    <div className="bg-white w-full max-w-sm shadow-2xl rounded-t-2xl">
+                    <div className="bg-white w-full max-w-sm shadow-2xl rounded-t-2xl dark:bg-black dark:border dark:border-gray-800">
                         <div className="bg-[#1e3a8a] p-2 flex justify-between items-center text-white rounded-t-2xl">
                             <h3 className="font-bold text-sm">ਕੈਲਕੁਲੇਟਰ</h3><button onClick={onClose} className="text-xl font-bold px-2">&times;</button>
                         </div>
-                        <div className="bg-gray-50 border-b p-2 text-right text-2xl font-mono font-bold h-12 flex items-center justify-end">{input || "0"}</div>
-                        <div className="grid grid-cols-4 gap-1 p-2 bg-gray-100">
-                            {['7','8','9','/','4','5','6','*','1','2','3','-'].map(b => <button key={b} onClick={() => handleBtn(b)} className="p-3 bg-white rounded shadow-sm font-bold text-lg text-blue-900 active:bg-blue-50">{b.replace('*','×')}</button>)}
-                            <button onClick={() => setInput("")} className="p-3 bg-red-50 text-red-600 rounded font-bold border border-red-100">C</button>
-                            <button onClick={() => handleBtn('0')} className="p-3 bg-white rounded shadow-sm font-bold text-lg">0</button>
-                            <button onClick={() => setInput(prev => prev.slice(0, -1))} className="p-3 bg-orange-50 text-orange-600 rounded font-bold border border-orange-100">⌫</button>
-                            <button onClick={() => handleBtn('+')} className="p-3 bg-white rounded shadow-sm font-bold text-lg">+</button>
+                        <div className="bg-gray-50 border-b p-2 text-right text-2xl font-mono font-bold h-12 flex items-center justify-end dark:bg-gray-900 dark:text-white dark:border-gray-800">{input || "0"}</div>
+                        <div className="grid grid-cols-4 gap-1 p-2 bg-gray-100 dark:bg-black">
+                            {['7','8','9','/','4','5','6','*','1','2','3','-'].map(b => <button key={b} onClick={() => handleBtn(b)} className="p-3 bg-white rounded shadow-sm font-bold text-lg text-blue-900 active:bg-blue-50 dark:bg-gray-900 dark:text-blue-300 dark:active:bg-gray-800">{b.replace('*','×')}</button>)}
+                            <button onClick={() => setInput("")} className="p-3 bg-red-50 text-red-600 rounded font-bold border border-red-100 dark:bg-red-900/20 dark:border-red-900/50">C</button>
+                            <button onClick={() => handleBtn('0')} className="p-3 bg-white rounded shadow-sm font-bold text-lg dark:bg-gray-900 dark:text-white">0</button>
+                            <button onClick={() => setInput(prev => prev.slice(0, -1))} className="p-3 bg-orange-50 text-orange-600 rounded font-bold border border-orange-100 dark:bg-orange-900/20 dark:border-orange-900/50">⌫</button>
+                            <button onClick={() => handleBtn('+')} className="p-3 bg-white rounded shadow-sm font-bold text-lg dark:bg-gray-900 dark:text-white">+</button>
                             <button onClick={calculate} className="col-span-4 p-2 bg-[#FF9933] text-white rounded shadow font-bold active:bg-orange-600">ਜੋੜੋ (SAVE)</button>
                         </div>
                     </div>
@@ -215,14 +310,16 @@
         // --- App ---
         const App = () => {
             const [activeTab, setActiveTab] = useState("counter");
+            const [darkMode, setDarkMode] = useState(false);
             const denoms = [500, 200, 100, 50, 20, 10, 5, 2, 1];
+            const BUNDLE_SIZE = 500;
 
             // State
             const [notes, setNotes] = useState({});
             const [extraAmount, setExtraAmount] = useState("");
             const [gurmukhiNumInput, setGurmukhiNumInput] = useState("");
-            const [bundles, setBundles] = useState({});
-            const [avgValues, setAvgValues] = useState({});
+            const [bundleCounts, setBundleCounts] = useState({}); 
+            const [avgValues, setAvgValues] = useState({}); 
             const [avgDirectAmount, setAvgDirectAmount] = useState("");
             const [avgMethod, setAvgMethod] = useState("detailed");
             const [startDate, setStartDate] = useState("");
@@ -233,21 +330,49 @@
 
             useEffect(() => {
                 setPunjabiDate(getDetailedDate());
-                const saved = localStorage.getItem('sgpcCashV7_Compact');
+                const saved = localStorage.getItem('sgpcCashV17_Compact');
                 if (saved) {
                     const d = JSON.parse(saved);
                     setNotes(d.notes || {}); setExtraAmount(d.extraAmount || ""); setGurmukhiNumInput(d.gurmukhiNumInput || "");
-                    setBundles(d.bundles || {}); 
+                    setBundleCounts(d.bundleCounts || {}); 
                     setAvgValues(d.avgValues || {}); setAvgDirectAmount(d.avgDirectAmount || ""); setAvgMethod(d.avgMethod || "detailed");
                     setStartDate(d.startDate || ""); setEndDate(d.endDate || "");
+                    setDarkMode(d.darkMode || false);
                 }
             }, []);
 
             useEffect(() => {
-                localStorage.setItem('sgpcCashV7_Compact', JSON.stringify({ 
-                    notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate 
+                localStorage.setItem('sgpcCashV17_Compact', JSON.stringify({ 
+                    notes, extraAmount, gurmukhiNumInput, bundleCounts, avgValues, avgDirectAmount, avgMethod, startDate, endDate, darkMode
                 }));
-            }, [notes, extraAmount, gurmukhiNumInput, bundles, avgValues, avgDirectAmount, avgMethod, startDate, endDate]);
+                // Apply Body Class
+                if (darkMode) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }, [notes, extraAmount, gurmukhiNumInput, bundleCounts, avgValues, avgDirectAmount, avgMethod, startDate, endDate, darkMode]);
+
+            // Handlers
+            const handleNoteCountChange = (d, val) => {
+                setNotes({...notes, [d]: val});
+            };
+
+            const handleNoteAmountChange = (d, val) => {
+                const amt = parseInt(cleanNumber(val)) || 0;
+                const count = Math.floor(amt / d);
+                setNotes({...notes, [d]: count > 0 ? count.toString() : ""});
+            };
+
+            const handleBundleChange = (denom, value) => {
+                setBundleCounts(prev => ({...prev, [denom]: value}));
+                const count = parseInt(cleanNumber(value)) || 0;
+                const totalVal = count * BUNDLE_SIZE * denom;
+                setAvgValues(prev => ({
+                    ...prev, 
+                    [denom]: totalVal > 0 ? totalVal.toString() : ""
+                }));
+            };
 
             const counterTotal = () => {
                 let sum = 0; denoms.forEach(d => sum += (parseInt(cleanNumber(notes[d])) || 0) * d);
@@ -257,35 +382,83 @@
             const bundleTotal = () => {
                 let sum = 0;
                 denoms.forEach(d => {
-                    const bigVal = parseInt(cleanNumber(bundles[d]?.bigVal)) || 0;
-                    const bigCount = parseInt(cleanNumber(bundles[d]?.bigCount)) || 0;
-                    sum += (bigVal * bigCount);
+                    const count = parseInt(cleanNumber(bundleCounts[d])) || 0;
+                    sum += (d * BUNDLE_SIZE * count);
                 });
                 return sum;
             };
 
             const getAvgResults = () => {
-                if (!startDate || !endDate) return null;
-                const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (86400000)) + 1;
-                if (days <= 0) return null;
                 let sum = 0;
                 if (avgMethod === 'direct') {
                     sum = parseInt(cleanNumber(avgDirectAmount)) || 0;
                 } else {
                     denoms.forEach(d => sum += (parseInt(cleanNumber(avgValues[d])) || 0));
                 }
-                return { days, grandTotal: sum, dailyGrandAvg: sum / days };
+
+                let days = 0;
+                let dailyGrandAvg = 0;
+                if (startDate && endDate) {
+                     days = Math.ceil((new Date(endDate) - new Date(startDate)) / (86400000)) + 1;
+                     if (days > 0) dailyGrandAvg = sum / days;
+                }
+
+                return { days, grandTotal: sum, dailyGrandAvg };
             };
             const avgResult = getAvgResults();
+
+            const sortedAvgData = useMemo(() => {
+                if (avgMethod !== 'detailed') return [];
+                const data = denoms.map(d => {
+                    const amount = parseInt(cleanNumber(avgValues[d])) || 0;
+                    return {
+                        denom: d,
+                        amount: amount,
+                        count: Math.floor(amount / d),
+                        average: avgResult && avgResult.days > 0 ? (amount / avgResult.days) : 0
+                    };
+                }).filter(item => item.amount > 0);
+                
+                const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+                
+                return data.sort((a, b) => b.amount - a.amount).map(item => ({
+                    ...item,
+                    percentage: totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(1) : "0"
+                }));
+            }, [avgValues, avgMethod, avgResult]);
+
+             const sortedBundleData = useMemo(() => {
+                const data = denoms.map(d => {
+                    const count = parseInt(cleanNumber(bundleCounts[d])) || 0;
+                    const amount = count * BUNDLE_SIZE * d;
+                    return {
+                        denom: d,
+                        amount: amount,
+                        noteCount: count * BUNDLE_SIZE
+                    };
+                }).filter(item => item.amount > 0);
+
+                const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+
+                return data.sort((a, b) => b.amount - a.amount).map(item => ({
+                    ...item,
+                    percentage: totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(1) : "0"
+                }));
+            }, [bundleCounts]);
+
 
             const handleReset = () => {
                 if (activeTab === 'counter') {
                     if(confirm("ਕੀ ਤੁਸੀਂ 'ਕੈਸ਼ ਕਾਊਂਟਰ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setNotes({}); setExtraAmount(""); setGurmukhiNumInput(""); }
                 } else if (activeTab === 'bundles') {
-                    if(confirm("ਕੀ ਤੁਸੀਂ 'ਬੰਡਲ ਗਿਣਤੀ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) setBundles({});
+                    if(confirm("ਕੀ ਤੁਸੀਂ 'ਬੰਡਲ ਗਿਣਤੀ' ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) setBundleCounts({});
                 } else if (activeTab === 'average') {
                     if(confirm("ਕੀ ਤੁਸੀਂ 'ਔਸਤ' ਡਾਟਾ ਸਾਫ਼ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?")) { setAvgValues({}); setAvgDirectAmount(""); setStartDate(""); setEndDate(""); }
                 }
+            };
+
+            const toggleDarkMode = () => {
+                setDarkMode(!darkMode);
             };
 
             const printPDF = () => window.print();
@@ -307,32 +480,35 @@
                     
                 } else if (activeTab === 'bundles') {
                     filename = "Kzana_Bundles.csv";
-                    csvContent += "ਨੋਟ (Note),ਛੋਟਾ ਬੰਡਲ ਮੁੱਲ,ਵੱਡਾ ਬੰਡਲ ਮੁੱਲ,ਵੱਡਾ ਬੰਡਲ ਗਿਣਤੀ,ਕੁੱਲ\n";
+                    csvContent += "ਨੋਟ (Note),ਵੇਰਵਾ (Description),ਬੰਡਲ ਗਿਣਤੀ (Bundle Count),ਕੁੱਲ (Total)\n";
                     denoms.forEach(d => {
-                        const sv = parseInt(cleanNumber(bundles[d]?.smallVal)) || 0;
-                        const bv = parseInt(cleanNumber(bundles[d]?.bigVal)) || 0;
-                        const bc = parseInt(cleanNumber(bundles[d]?.bigCount)) || 0;
-                        const total = (bv * bc);
-                        csvContent += `${d},${sv},${bv},${bc},${total}\n`;
+                        const count = parseInt(cleanNumber(bundleCounts[d])) || 0;
+                        const total = (d * BUNDLE_SIZE * count);
+                        csvContent += `${d},${BUNDLE_SIZE} Notes Bundle,${count},${total}\n`;
                     });
-                    csvContent += `,,,,,${bundleTotal()}\n`;
+                    csvContent += `,,Total,${bundleTotal()}\n\n`;
+                    csvContent += "Analysis Chart\n";
+                    csvContent += "ਨੋਟ (Note),ਕੁੱਲ ਰਕਮ (Amount),ਪ੍ਰਤੀਸ਼ਤ (%),ਨੋਟ ਗਿਣਤੀ (Note Count)\n";
+                    sortedBundleData.forEach(item => {
+                        csvContent += `${item.denom},${item.amount},${item.percentage}%,${item.noteCount}\n`;
+                    });
 
                 } else if (activeTab === 'average') {
-                    filename = "Kzana_Average.csv";
+                    filename = "Kzana_Average_Report.csv";
                     csvContent += `ਤਰੀਕ ਤੋਂ: ${startDate}, ਤਰੀਕ ਤੱਕ: ${endDate}\n`;
                     if(avgResult) {
-                        csvContent += `ਕੁੱਲ ਦਿਨ: ${avgResult.days}\n\n`;
+                        csvContent += `ਕੁੱਲ ਦਿਨ: ${avgResult.days > 0 ? avgResult.days : 'N/A'}\n\n`;
                         if (avgMethod === 'direct') { csvContent += `ਸਿੱਧੀ ਰਕਮ,${avgDirectAmount}\n`; } 
                         else {
-                            csvContent += "ਨੋਟ (Note),ਕੁੱਲ ਰਕਮ (Total Value),ਰੋਜ਼ਾਨਾ ਔਸਤ (Daily Avg)\n";
-                            denoms.forEach(d => {
-                                const val = parseInt(cleanNumber(avgValues[d])) || 0;
-                                const avg = val / avgResult.days;
-                                csvContent += `${d},${val},${avg.toFixed(2)}\n`;
+                            csvContent += "ਨੋਟ (Note),ਕੁੱਲ ਰਕਮ (Total Value),ਪ੍ਰਤੀਸ਼ਤ (%),ਨੋਟ ਗਿਣਤੀ (Note Count),ਰੋਜ਼ਾਨਾ ਔਸਤ (Daily Avg)\n";
+                            sortedAvgData.forEach(item => {
+                                csvContent += `${item.denom},${item.amount},${item.percentage}%,${item.count},${item.average.toFixed(2)}\n`;
                             });
                         }
-                        csvContent += `,,${avgResult.grandTotal}\n`;
-                        csvContent += `ਰੋਜ਼ਾਨਾ ਔਸਤ (Grand Daily Avg),,${avgResult.dailyGrandAvg.toFixed(2)}\n`;
+                        csvContent += `,,Total,${avgResult.grandTotal}\n`;
+                        if(avgResult.days > 0) {
+                            csvContent += `,,Grand Daily Avg,${avgResult.dailyGrandAvg.toFixed(2)}\n`;
+                        }
                     }
                 }
                 const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -346,7 +522,7 @@
             const TabBtn = ({ id, label, colorClass, activeColor }) => (
                 <button 
                     onClick={() => setActiveTab(id)} 
-                    className={`flex-1 py-2 text-[11px] font-bold rounded shadow-sm border ${activeTab === id ? `${activeColor} text-white border-transparent` : 'bg-white text-gray-500 border-gray-200'}`}
+                    className={`flex-1 py-2 text-[11px] font-bold rounded shadow-sm border ${activeTab === id ? `${activeColor} text-white border-transparent` : 'bg-white text-gray-500 border-gray-200 tab-btn-inactive'}`}
                 >
                     {label}
                 </button>
@@ -362,9 +538,18 @@
                                 <h2 className="text-base font-bold leading-tight drop-shadow-sm">ਸ਼੍ਰੋਮਣੀ ਗੁਰਦੁਆਰਾ ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ (ਖ਼ਜ਼ਾਨਾ)</h2>
                                 <div className="text-white/90 text-[10px] mt-0.5 font-medium">{punjabiDate}</div>
                             </div>
-                            <button onClick={handleReset} className="bg-red-600 text-white p-1.5 rounded-md shadow border border-white/20 active:scale-95">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            </button>
+                            <div className="flex gap-2">
+                                <button onClick={toggleDarkMode} className="bg-gray-800 text-yellow-300 p-1.5 rounded-md shadow border border-white/20 active:scale-95 transition-colors">
+                                    {darkMode ? 
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                                        : 
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                                    }
+                                </button>
+                                <button onClick={handleReset} className="bg-red-600 text-white p-1.5 rounded-md shadow border border-white/20 active:scale-95">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                </button>
+                            </div>
                         </div>
                         <div className="px-2 mb-1">
                             <div className="flex gap-1">
@@ -388,67 +573,91 @@
                         
                         {activeTab === 'counter' && (
                             <div className="space-y-2 animate-in fade-in">
-                                <div className="bg-blue-600 text-white rounded-lg p-2 shadow flex justify-between items-center print:bg-white print:text-black print:border print:border-black">
+                                <div className="bg-blue-600 text-white rounded-lg p-3 shadow flex justify-between items-center print:bg-white print:text-black print:border print:border-black">
                                     <div><p className="text-[9px] font-bold uppercase opacity-80">ਕੁੱਲ ਮਾਇਆ</p><div className="text-2xl font-extrabold leading-none">₹ {formatIndianNumber(counterTotal())}</div></div>
-                                    <div className="text-right w-3/5"><p className="text-[10px] leading-tight opacity-90">{numberToEnglish(counterTotal())}</p></div>
                                 </div>
+                                
+                                <IndianNumberDisplay value={counterTotal()} />
+
                                 <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-2 flex gap-2 items-center print:border-black">
                                     <div className="flex-1">
                                         <label className="text-blue-800 font-bold text-[10px] block mb-0.5 print:text-black text-center">ਹੋਰ ਰਕਮ / ਚਿੱਲਰ</label>
-                                        <input type="text" inputMode="numeric" value={formatIndianNumber(extraAmount)} onChange={e => setExtraAmount(cleanNumber(e.target.value))} className="input-box w-full py-1 px-2 rounded text-base font-bold text-blue-900 print:text-black print:pl-0" placeholder="0"/>
+                                        <div className="currency-input-group">
+                                            <input type="text" inputMode="numeric" value={formatIndianNumber(extraAmount)} onChange={e => setExtraAmount(cleanNumber(e.target.value))} placeholder="0"/>
+                                            <div className="addon">ਰੁ (₹)</div>
+                                        </div>
                                     </div>
                                     <button onClick={() => setShowCalc(true)} className="bg-blue-600 text-white p-2 rounded-lg shadow no-print mt-3"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="8" y1="18" x2="8" y2="18"/></svg></button>
                                 </div>
                                 <div className="bg-white rounded-lg shadow-sm border border-blue-100 overflow-hidden print:border-black">
                                     <div className="grid grid-cols-12 gap-1 text-[10px] font-bold text-gray-500 p-1.5 border-b bg-gray-50 print:text-black items-center">
-                                        <div className="col-span-3 text-center">ਨੋਟ</div><div className="col-span-4 text-center">ਗਿਣਤੀ</div><div className="col-span-5 text-center">ਕੁੱਲ</div>
+                                        <div className="col-span-3 text-center">ਨੋਟ</div><div className="col-span-4 text-center">ਗਿਣਤੀ</div><div className="col-span-5 text-center">ਕੁੱਲ (₹)</div>
                                     </div>
-                                    {denoms.map(d => (
-                                        <div key={d} className="grid grid-cols-12 gap-1 items-center border-b border-gray-50 p-1 print:border-gray-200">
-                                            <div className="col-span-3 text-center font-bold text-gray-700 text-base print:text-black">₹{d}</div>
-                                            <div className="col-span-4"><input type="number" value={notes[d] || ""} onChange={e => setNotes({...notes, [d]: e.target.value})} placeholder="0" className="input-box w-full py-1 rounded text-center text-base font-bold text-blue-900 print:text-black"/></div>
-                                            <div className="col-span-5 text-center font-bold text-gray-700 text-sm print:text-black">{formatIndianNumber((parseInt(notes[d])||0)*d)}</div>
-                                        </div>
-                                    ))}
+                                    {denoms.map(d => {
+                                        const noteVal = parseInt(notes[d]) || 0;
+                                        const totalRowVal = noteVal * d;
+                                        return (
+                                            <div key={d} className="grid grid-cols-12 gap-1 items-center border-b border-gray-50 p-1 print:border-gray-200">
+                                                <div className="col-span-3 text-center font-bold text-gray-700 text-base print:text-black">₹{d}</div>
+                                                <div className="col-span-4"><input type="number" value={notes[d] || ""} onChange={e => handleNoteCountChange(d, e.target.value)} placeholder="0" className="input-box w-full py-1 rounded text-center text-base font-bold text-blue-900 print:text-black"/></div>
+                                                {/* Bidirectional Input for Total Amount Row */}
+                                                <div className="col-span-5">
+                                                    <input 
+                                                        type="text" 
+                                                        inputMode="numeric"
+                                                        value={totalRowVal > 0 ? formatIndianNumber(totalRowVal) : ""} 
+                                                        onChange={e => handleNoteAmountChange(d, e.target.value)}
+                                                        placeholder="0"
+                                                        className="input-box w-full py-1 rounded text-center text-sm font-bold text-gray-800 bg-gray-50 focus:bg-white print:bg-transparent print:text-black border-transparent focus:border-blue-300 dark:bg-gray-900 dark:text-white dark:border-gray-700"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
                                 </div>
                                 <div className="bg-orange-50 rounded-lg border border-orange-200 p-2 no-print flex gap-2 items-center justify-center">
                                     <input type="number" value={gurmukhiNumInput} onChange={e => setGurmukhiNumInput(e.target.value)} placeholder="123" className="w-20 input-box p-1 rounded text-center text-sm"/>
                                     <span className="text-orange-400">➔</span>
-                                    <div className="flex-1 font-bold text-lg text-blue-900 text-center">{gurmukhiNumInput ? toGurmukhiNumerals(gurmukhiNumInput) : "-"}</div>
+                                    <div className="flex-1 font-bold text-lg text-blue-900 text-center dark:text-blue-300">{gurmukhiNumInput ? toGurmukhiNumerals(gurmukhiNumInput) : "-"}</div>
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'bundles' && (
                             <div className="space-y-2 animate-in fade-in">
-                                <div className="bg-yellow-600 text-white rounded-lg p-2 shadow flex justify-between items-center print:bg-white print:text-black print:border print:border-black">
-                                    <div><p className="text-[9px] font-bold uppercase opacity-80">ਬੰਡਲ ਜੋੜ</p><div className="text-2xl font-extrabold leading-none">₹ {formatIndianNumber(bundleTotal())}</div></div>
-                                    <div className="text-right w-3/5"><p className="text-[10px] leading-tight opacity-90">{numberToEnglish(bundleTotal())}</p></div>
+                                <div className="bg-yellow-600 text-white rounded-lg p-1.5 shadow flex justify-between items-center print:bg-white print:text-black print:border print:border-black">
+                                    <div><p className="text-[9px] font-bold uppercase opacity-80">ਬੰਡਲ ਜੋੜ (500 ਨੋਟ/ਬੰਡਲ)</p><div className="text-2xl font-extrabold leading-none">₹ {formatIndianNumber(bundleTotal())}</div></div>
                                 </div>
+                                
+                                <IndianNumberDisplay value={bundleTotal()} />
+
                                 <div className="bg-white rounded-lg shadow-sm border border-yellow-200 overflow-hidden print:border-black">
                                     <div className="p-0 overflow-x-auto">
                                         <table className="w-full text-xs">
-                                            <thead className="bg-yellow-50 text-yellow-900 border-b print:bg-gray-100">
+                                            <thead className="bg-yellow-50 text-yellow-900 border-b print:bg-gray-100 dark:bg-yellow-900/30 dark:text-yellow-100">
                                                 <tr>
-                                                    <th className="p-1.5 text-center w-10">ਨੋਟ</th>
-                                                    <th className="p-1.5 text-center border-l border-yellow-200">ਛੋਟਾ (ਮੁੱਲ)</th>
-                                                    <th className="p-1.5 text-center border-l border-yellow-200">ਵੱਡਾ (ਮੁੱਲ)</th>
-                                                    <th className="p-1.5 text-center border-l border-yellow-200 w-12">ਗਿਣਤੀ</th>
-                                                    <th className="p-1.5 text-center w-24">ਕੁੱਲ</th>
+                                                    <th className="p-2 text-center w-12">ਨੋਟ</th>
+                                                    <th className="p-2 text-center border-l border-yellow-200">ਵੇਰਵਾ</th>
+                                                    <th className="p-2 text-center border-l border-yellow-200 w-20">ਬੰਡਲ ਗਿਣਤੀ</th>
+                                                    <th className="p-2 text-center w-24">ਕੁੱਲ (₹)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                             {denoms.map(d => {
-                                                const bv = parseInt(cleanNumber(bundles[d]?.bigVal))||0;
-                                                const bc = parseInt(cleanNumber(bundles[d]?.bigCount))||0;
-                                                const total = (bv*bc);
+                                                const count = parseInt(cleanNumber(bundleCounts[d])) || 0;
+                                                const total = (d * BUNDLE_SIZE * count);
                                                 return (
-                                                    <tr key={d} className="border-b last:border-0">
-                                                        <td className="p-1.5 font-bold text-gray-700 text-center">₹{d}</td>
-                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.smallVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], smallVal: cleanNumber(e.target.value)}})} className="w-full py-1 input-box text-center font-bold text-[11px] placeholder-gray-300"/></td>
-                                                        <td className="p-1 border-l border-yellow-100"><input type="text" placeholder="ਮੁੱਲ" value={formatIndianNumber(bundles[d]?.bigVal)} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigVal: cleanNumber(e.target.value)}})} className="w-full py-1 input-box text-center font-bold text-[11px] placeholder-gray-300"/></td>
-                                                        <td className="p-1 border-l border-yellow-100"><input type="number" placeholder="0" value={bundles[d]?.bigCount||""} onChange={e => setBundles({...bundles, [d]:{...bundles[d], bigCount: e.target.value}})} className="w-full py-1 input-box text-center font-bold bg-yellow-50 placeholder-gray-300"/></td>
-                                                        <td className="p-1.5 text-center font-bold text-gray-600 text-[11px]">{formatIndianNumber(total)}</td>
+                                                    <tr key={d} className="border-b last:border-0 hover:bg-yellow-50/30 dark:border-gray-800">
+                                                        <td className="p-1.5 font-bold text-gray-700 text-center text-sm">₹{d}</td>
+                                                        <td className="p-1 border-l border-yellow-100 text-center dark:border-gray-800">
+                                                            <div className="text-xs font-bold text-gray-500 bg-gray-100 rounded py-1 px-2 inline-block w-full dark:bg-gray-800 dark:text-gray-400">
+                                                                {BUNDLE_SIZE} ਨੋਟਾਂ ਦਾ ਬੰਡਲ
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-1 border-l border-yellow-100 dark:border-gray-800">
+                                                            <input type="number" placeholder="0" value={bundleCounts[d]||""} onChange={e => handleBundleChange(d, e.target.value)} className="w-full py-1.5 input-box text-center font-bold text-blue-900 placeholder-gray-300 border-yellow-200 focus:border-yellow-500 dark:text-white dark:border-gray-700"/>
+                                                        </td>
+                                                        <td className="p-1.5 text-center font-bold text-gray-800 text-xs tracking-tight dark:text-white">{formatIndianNumber(total)} <span className="text-[9px] text-gray-400">₹</span></td>
                                                     </tr>
                                                 )
                                             })}
@@ -456,33 +665,64 @@
                                         </table>
                                     </div>
                                 </div>
+                                
+                                {/* Bundle Analysis Chart */}
+                                {sortedBundleData.length > 0 && (
+                                    <div className="mt-4 bg-white rounded-lg shadow-sm border border-yellow-200 overflow-hidden print:border-black animate-in slide-in-from-bottom-2">
+                                        <div className="bg-yellow-50 p-2 border-b border-yellow-200 text-center font-bold text-yellow-900 text-xs dark:bg-yellow-900/40 dark:text-yellow-100 dark:border-gray-800">ਵਿਸ਼ਲੇਸ਼ਣ ਚਾਰਟ (Bundle Analysis)</div>
+                                        <table className="w-full text-xs">
+                                            <thead className="bg-gray-50 border-b dark:bg-gray-900 dark:border-gray-800">
+                                                <tr>
+                                                    <th className="p-1.5 text-center">ਨੋਟ</th>
+                                                    <th className="p-1.5 text-center">ਰਕਮ</th>
+                                                    <th className="p-1.5 text-center">ਪ੍ਰਤੀਸ਼ਤ</th>
+                                                    <th className="p-1.5 text-center">ਨੋਟ ਗਿਣਤੀ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {sortedBundleData.map((item, idx) => (
+                                                    <tr key={item.denom} className="border-b last:border-0 hover:bg-yellow-50/20 dark:border-gray-800">
+                                                        <td className="p-1.5 text-center font-bold">₹{item.denom}</td>
+                                                        <td className="p-1.5 text-center font-semibold text-gray-700 text-xs">{formatIndianNumber(item.amount)}<span className="text-[8px] ml-0.5 text-gray-400">₹</span></td>
+                                                        <td className="p-1.5 text-center">
+                                                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${idx === 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}`}>
+                                                                {item.percentage}%
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-1.5 text-center text-gray-500">{formatIndianNumber(item.noteCount)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {activeTab === 'average' && (
                             <div className="space-y-2 animate-in fade-in">
-                                {/* Updated Date Container: Colored background on screen, white on print */}
+                                {/* Date Container */}
                                 <div className="bg-orange-100 p-2 rounded-lg shadow-sm border border-orange-200 print:bg-transparent print:border-black mb-2">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="text-center">
-                                            <label className="text-[10px] font-bold uppercase text-[#8B4513] block mb-1">ਮਿਤੀ ਤੋਂ</label>
-                                            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full p-1.5 bg-white rounded border border-orange-200 text-xs text-center font-bold shadow-sm focus:outline-none focus:border-orange-500"/>
+                                            <label className="text-[10px] font-bold uppercase text-[#8B4513] block mb-1 dark:text-orange-300">ਮਿਤੀ ਤੋਂ</label>
+                                            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full p-1.5 bg-white rounded border border-orange-200 text-xs text-center font-bold shadow-sm focus:outline-none focus:border-orange-500 dark:bg-gray-900 dark:text-white dark:border-orange-900"/>
                                         </div>
                                         <div className="text-center">
-                                            <label className="text-[10px] font-bold uppercase text-[#8B4513] block mb-1">ਮਿਤੀ ਤੱਕ</label>
-                                            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full p-1.5 bg-white rounded border border-orange-200 text-xs text-center font-bold shadow-sm focus:outline-none focus:border-orange-500"/>
+                                            <label className="text-[10px] font-bold uppercase text-[#8B4513] block mb-1 dark:text-orange-300">ਮਿਤੀ ਤੱਕ</label>
+                                            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full p-1.5 bg-white rounded border border-orange-200 text-xs text-center font-bold shadow-sm focus:outline-none focus:border-orange-500 dark:bg-gray-900 dark:text-white dark:border-orange-900"/>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Updated Toggle Buttons: Distinct Button Styling */}
+                                {/* Toggle Buttons */}
                                 <div className="flex gap-2 p-1 rounded-lg no-print mb-2 justify-center">
                                     <button 
                                         onClick={() => setAvgMethod('detailed')} 
                                         className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-lg border transition-all duration-200 shadow-sm ${
                                             avgMethod === 'detailed' 
                                             ? 'bg-[#FF9933] text-white border-[#e68a00] transform scale-[1.02]' 
-                                            : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50'
+                                            : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50 tab-btn-inactive'
                                         }`}
                                     >
                                         ਵੇਰਵਾ (Detailed)
@@ -492,7 +732,7 @@
                                         className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-lg border transition-all duration-200 shadow-sm ${
                                             avgMethod === 'direct' 
                                             ? 'bg-[#FF9933] text-white border-[#e68a00] transform scale-[1.02]' 
-                                            : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50'
+                                            : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50 tab-btn-inactive'
                                         }`}
                                     >
                                         ਸਿੱਧਾ (Direct)
@@ -500,26 +740,117 @@
                                 </div>
 
                                 {avgMethod === 'detailed' ? (
-                                    <div className="bg-white rounded-lg shadow-sm border border-stone-200 overflow-hidden print:border-black">
-                                        <table className="w-full text-xs">
-                                            <thead className="bg-stone-50 text-stone-900 border-b print:bg-gray-100">
-                                                <tr><th className="p-1.5 text-center w-12">ਨੋਟ</th><th className="p-1.5 text-center">ਕੁੱਲ ਰਕਮ ਭਰੋ<span className="text-[8px] font-normal text-red-500 block print:hidden">(ਨੋਟਾਂ ਦੀ ਗਿਣਤੀ ਨਹੀਂ)</span></th><th className="p-1.5 text-center bg-stone-100 print:bg-transparent">ਔਸਤ</th></tr>
-                                            </thead>
-                                            <tbody>
-                                                {denoms.map(d => {
-                                                    const val = parseInt(cleanNumber(avgValues[d]))||0;
-                                                    const avg = avgResult ? val/avgResult.days : 0;
-                                                    return (
-                                                        <tr key={d} className="border-b last:border-0 print:border-gray-200">
-                                                            <td className="p-1.5 text-center font-bold">₹{d}</td>
-                                                            <td className="p-1"><input type="text" inputMode="numeric" value={formatIndianNumber(avgValues[d])} onChange={e => setAvgValues({...avgValues, [d]: cleanNumber(e.target.value)})} placeholder="0" className="w-full py-1 input-box text-center font-bold avg-amount-input print:text-center"/></td>
-                                                            <td className="p-1.5 text-center font-bold text-stone-900 bg-stone-50 print:bg-transparent">{formatIndianNumber(avg.toFixed(2))}</td>
+                                    <>
+                                        {/* Input Table - Hidden in Print */}
+                                        <div className="bg-white rounded-lg shadow-sm border border-stone-200 overflow-hidden print:hidden avg-input-section">
+                                            <table className="w-full text-xs">
+                                                <thead className="bg-stone-50 text-stone-900 border-b">
+                                                    <tr>
+                                                        <th className="p-2 text-center w-10">ਨੋਟ</th>
+                                                        <th className="p-2 text-center border-l border-gray-200 dark:border-gray-800">
+                                                            <div className="flex justify-between px-2">
+                                                                <span>ਰਕਮ ਭਰੋ</span>
+                                                                <span>ਨੋਟਾਂ ਦੀ ਗਿਣਤੀ ਭਰੋ</span>
+                                                            </div>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {denoms.map(d => {
+                                                        const val = parseInt(cleanNumber(avgValues[d]))||0;
+                                                        const countVal = val > 0 ? val / d : "";
+                                                        return (
+                                                            <tr key={d} className="border-b last:border-0 dark:border-gray-800">
+                                                                <td className="p-1.5 text-center font-bold">₹{d}</td>
+                                                                <td className="p-1">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <div className="flex-1 currency-input-group">
+                                                                            <input 
+                                                                                type="text" 
+                                                                                inputMode="numeric" 
+                                                                                value={formatIndianNumber(avgValues[d])} 
+                                                                                onChange={e => setAvgValues({...avgValues, [d]: cleanNumber(e.target.value)})} 
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <div className="addon">ਰੁ (₹)</div>
+                                                                        </div>
+                                                                        
+                                                                        <div className="text-[10px] font-bold text-gray-400 px-1">ਜਾਂ</div>
+                                                                        
+                                                                        <div className="flex-1">
+                                                                            <input 
+                                                                                type="number" 
+                                                                                placeholder="0"
+                                                                                value={countVal}
+                                                                                onChange={e => {
+                                                                                    const c = parseInt(e.target.value) || 0;
+                                                                                    const newTotal = c * d;
+                                                                                    setAvgValues({...avgValues, [d]: newTotal > 0 ? newTotal.toString() : ""});
+                                                                                }}
+                                                                                className="w-full py-1 input-box text-center font-bold text-blue-900 border-stone-300 focus:border-blue-500 h-[26px] dark:text-white dark:border-gray-700"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Large Summary Summary (Screen Only) */}
+                                        <div className="bg-orange-600 text-white p-3 rounded-lg shadow-md mb-4 flex justify-between items-center print:hidden mt-4">
+                                            <div className="text-center">
+                                                <p className="text-xs font-bold opacity-80 uppercase">ਕੁੱਲ ਰਕਮ</p>
+                                                <p className="text-2xl font-extrabold">₹ {formatIndianNumber(avgResult.grandTotal)}</p>
+                                            </div>
+                                            <div className="text-center border-l border-orange-400 pl-4">
+                                                 <p className="text-xs font-bold opacity-80 uppercase">ਰੋਜ਼ਾਨਾ ਔਸਤ</p>
+                                                 <p className="text-xl font-bold">
+                                                    {avgResult && avgResult.days > 0 ? `₹ ${formatIndianNumber(avgResult.dailyGrandAvg.toFixed(2))}` : "---"}
+                                                 </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Sorted Analysis Chart - Main for Print/Export */}
+                                        {sortedAvgData.length > 0 && (
+                                            <div className="mt-4 bg-white rounded-lg shadow-sm border border-blue-200 overflow-hidden print:border-black animate-in slide-in-from-bottom-2">
+                                                <div className="bg-blue-50 p-2 border-b border-blue-200 text-center font-bold text-blue-900 text-xs dark:bg-blue-900/40 dark:text-blue-100 dark:border-gray-800">ਵਿਸ਼ਲੇਸ਼ਣ ਚਾਰਟ (Analysis Chart)</div>
+                                                <table className="w-full text-xs">
+                                                    <thead className="bg-gray-50 border-b dark:bg-gray-900 dark:border-gray-800">
+                                                        <tr>
+                                                            <th className="p-1.5 text-center">ਨੋਟ</th>
+                                                            <th className="p-1.5 text-center">ਰਕਮ</th>
+                                                            <th className="p-1.5 text-center">ਪ੍ਰਤੀਸ਼ਤ</th>
+                                                            <th className="p-1.5 text-center">ਨੋਟ ਗਿਣਤੀ</th>
+                                                            <th className="p-1.5 text-center bg-gray-100 dark:bg-gray-800">ਰੋਜ਼ਾਨਾ ਔਸਤ</th>
                                                         </tr>
-                                                    )
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                    </thead>
+                                                    <tbody>
+                                                        {sortedAvgData.map((item, idx) => (
+                                                            <tr key={item.denom} className="border-b last:border-0 hover:bg-blue-50/50 dark:border-gray-800">
+                                                                <td className="p-1.5 text-center font-bold">₹{item.denom}</td>
+                                                                <td className="p-1.5 text-center font-semibold text-gray-700 text-xs">{formatIndianNumber(item.amount)}<span className="text-[8px] ml-0.5 text-gray-400">₹</span></td>
+                                                                <td className="p-1.5 text-center">
+                                                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${idx === 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}`}>
+                                                                        {item.percentage}%
+                                                                    </span>
+                                                                </td>
+                                                                <td className="p-1.5 text-center text-gray-500">{formatIndianNumber(item.count)}</td>
+                                                                <td className="p-1.5 text-center font-bold bg-gray-50 text-gray-800 text-[10px] dark:bg-gray-800 dark:text-white">
+                                                                    {avgResult && avgResult.days > 0 
+                                                                        ? <span>{formatIndianNumber(item.average.toFixed(2))}<span className="text-[8px] ml-0.5 text-gray-400">₹</span></span>
+                                                                        : <span className="text-red-400 font-normal">ਤਰੀਕ ਚੁਣੋ</span>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : (
                                     <div className="bg-white rounded-lg shadow-sm border border-stone-200 p-3 print:border-black text-center">
                                         <label className="text-xs font-bold text-[#8B4513]">ਸਾਰੇ ਦਿਨਾਂ ਦੀ ਕੁੱਲ ਰਕਮ</label>
@@ -527,23 +858,28 @@
                                     </div>
                                 )}
 
-                                {avgResult && avgResult.days > 0 ? (
-                                    <div className="bg-stone-50 border border-stone-200 p-2 rounded-lg text-center print:border-black print:bg-transparent mt-2">
-                                        <div className="flex justify-center gap-4 text-xs mb-1 border-b border-stone-200 pb-1">
-                                            <span>ਦਿਨ: <b>{avgResult.days}</b></span><span>ਕੁੱਲ: <b>₹{formatIndianNumber(avgResult.grandTotal)}</b></span>
-                                        </div>
-                                        <p className="text-[#8B4513] text-[10px] font-bold uppercase">ਰੋਜ਼ਾਨਾ ਔਸਤ</p>
-                                        <p className="text-xl font-extrabold text-[#8B4513]">₹ {formatIndianNumber(avgResult.dailyGrandAvg.toFixed(2))}</p>
+                                {/* Summary Box - Logic: Total Always visible. Avg only if Dates present */}
+                                <div className="bg-stone-50 border border-stone-200 p-2 rounded-lg text-center print:border-black print:bg-transparent mt-2">
+                                    <div className="flex justify-center gap-4 text-xs mb-1 border-b border-stone-200 pb-1 dark:border-gray-800">
+                                         {avgResult && avgResult.days > 0 && <span>ਦਿਨ: <b>{avgResult.days}</b></span>}
+                                         <span className="text-sm">ਕੁੱਲ: <b>₹{formatIndianNumber(avgResult.grandTotal)}</b></span>
                                     </div>
-                                ) : (
-                                    <div className="text-center text-gray-400 text-[10px] py-1">ਤਰੀਕਾਂ ਭਰੋ...</div>
-                                )}
+                                    
+                                    {avgResult && avgResult.days > 0 ? (
+                                        <>
+                                            <p className="text-[#8B4513] text-[10px] font-bold uppercase dark:text-orange-300">ਰੋਜ਼ਾਨਾ ਔਸਤ</p>
+                                            <p className="text-xl font-extrabold text-[#8B4513] dark:text-orange-400">₹ {formatIndianNumber(avgResult.dailyGrandAvg.toFixed(2))}</p>
+                                        </>
+                                    ) : (
+                                        <div className="text-center text-gray-400 text-[10px] py-1">ਰੋਜ਼ਾਨਾ ਔਸਤ ਦੇਖਣ ਲਈ ਤਰੀਕਾਂ ਭਰੋ...</div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
                         <div className="flex gap-2 mt-3 no-print">
-                            <button onClick={printPDF} className="flex-1 bg-gray-800 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95">PDF</button>
-                            <button onClick={downloadExcel} className="flex-1 bg-green-700 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95">Excel</button>
+                            <button onClick={printPDF} className="flex-1 bg-gray-800 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95 dark:bg-gray-700 dark:border dark:border-gray-600">PDF</button>
+                            <button onClick={downloadExcel} className="flex-1 bg-green-700 text-white font-bold py-2.5 rounded-lg shadow text-xs flex justify-center items-center gap-1 active:scale-95 dark:bg-green-900 dark:border dark:border-green-800">Excel</button>
                         </div>
                         
                         <div className="h-4 no-print"></div>
@@ -557,6 +893,8 @@
                         </div>
                         <div className="footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ | ਫੋਨ ਨੰਬਰ 94644-91806</div>
                     </div>
+                    
+                    {showCalc && <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => { setExtraAmount(cleanNumber(val)); }} />}
                 </>
             );
         };
