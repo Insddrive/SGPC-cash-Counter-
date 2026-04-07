@@ -1,10 +1,11 @@
 {
-  "name": "Kzana Counter",
-  "short_name": "Kzana",
-  "start_url": "./index.html",
+  "name": "ਪ੍ਰੋ ਕੈਲਕੂਲੇਟਰ",
+  "short_name": "ਕੈਲਕੂਲੇਟਰ",
+  "description": "ਐਡਵਾਂਸਡ ਪੰਜਾਬੀ ਮਲਟੀ-ਟੈਬ ਕੈਲਕੂਲੇਟਰ",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#FFF8E1",
-  "theme_color": "#FF9933",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
