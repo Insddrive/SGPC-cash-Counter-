@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kzana Counter</title>
     
-    <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF9933">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -627,7 +625,14 @@
                         </div>
                         <div className="footer-credit">ਸੋਫਟਵੇਅਰ ਬਣਾਇਆ ਗਿਆ ਵੱਲੋਂ ਸ: ਇੰਦਰਜੀਤ ਸਿੰਘ ਤਲਵੰਡੀ ਸਾਬੋ (ਮੁਲਾਜ਼ਮ SGPC ਸ਼੍ਰੀ ਦਰਬਾਰ ਸਾਹਿਬ, ਅੰਮ੍ਰਿਤਸਰ) | ਫੋਨ ਨੰਬਰ 94644-91806</div>
                     </div>
-                    {showCalc && <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => { setExtraAmount(cleanNumber(val)); }} />}
+                    {/* Updated onSave logic to add the calculated value to the existing extra amount */}
+                    {showCalc && <CalculatorModal isOpen={showCalc} onClose={() => setShowCalc(false)} onSave={(val) => { 
+                        setExtraAmount(prev => { 
+                            const existing = parseInt(cleanNumber(prev)) || 0; 
+                            const added = parseInt(val) || 0; 
+                            return (existing + added).toString(); 
+                        }); 
+                    }} />}
                 </>
             );
         };
@@ -637,5 +642,3 @@
     </script>
 </body>
 </html>
-
-
