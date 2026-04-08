@@ -2,6 +2,7 @@
   "name": "ਪ੍ਰੋ ਕੈਲਕੂਲੇਟਰ",
   "short_name": "ਕੈਲਕੂਲੇਟਰ",
   "description": "ਐਡਵਾਂਸਡ ਪੰਜਾਬੀ ਮਲਟੀ-ਟੈਬ ਕੈਲਕੂਲੇਟਰ",
+  "version": "3.0.0",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#000000",
