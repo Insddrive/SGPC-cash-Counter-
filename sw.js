@@ -1,4 +1,5 @@
-const CACHE_NAME = 'punjabi-calc-v2';
+// ਵਰਜ਼ਨ ਅਪਡੇਟ ਕਰ ਦਿੱਤਾ ਗਿਆ ਹੈ ਤਾਂ ਜੋ ਫੋਨ ਨਵਾਂ ਕੋਡ ਚੁੱਕ ਲਵੇ
+const CACHE_NAME = 'punjabi-calc-v3';
 const urlsToCache = [
   './',
   './index.html',
